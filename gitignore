@@ -1,0 +1,18 @@
+# --- Python garbage ---
+__pycache__/
+*.pyc
+venv/
+
+# --- C++ compiled files (Don't upload executables) ---
+*.exe
+*.o
+*.out
+solver  # Mac/Linux executable name
+
+# --- Database & Temp Files (Don't upload these!) ---
+*.db
+input.txt
+output.txt
+
+# --- OS Junk ---
+.DS_Store
