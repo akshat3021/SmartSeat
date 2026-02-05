@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSeat | Exam Portal</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <div class="logo">💺 SmartSeat</div>
+        </header>
+
+        <div class="search-section" id="searchBox">
+            <h1>Find Your Exam Seat</h1>
+            <p>Enter your Roll Number to see your arrangement.</p>
+            
+            <div class="input-group">
+                <input type="text" id="rollInput" placeholder="Ex: 200101" autocomplete="off">
+                <button onclick="findSeat()">Search</button>
+            </div>
+            <p class="error-msg" id="errorMsg"></p>
+        </div>
+
+        <div class="result-card" id="resultCard" style="display: none;">
+            <div class="ticket-header">
+                <div>
+                    <h2>Hi, Akshat!</h2>
+                    <p>Exam: Design & Analysis of Algorithms</p>
+                </div>
+                <button class="close-btn" onclick="closeResult()">✕</button>
+            </div>
+            
+            <div class="seat-info">
+                <span>📍 Room 302</span>
+                <span>📅 Morning Shift</span>
+            </div>
+
+            <div class="visual-grid-container">
+                <h4>FRONT OF CLASS</h4>
+                <div class="classroom-grid" id="gridTarget">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/script.js"></script>
+</body>
+</html>
