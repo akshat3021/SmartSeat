@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSeat | Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg:        #0a0e1a;
+            --surface:   #111827;
+            --surface2:  #1a2236;
+            --border:    rgba(255,255,255,0.08);
+            --green:     #22c55e;
+            --green-dim: rgba(34,197,94,0.12);
+            --red:       #ef4444;
+            --red-dim:   rgba(239,68,68,0.10);
+            --accent:    #6366f1;
+            --muted:     rgba(255,255,255,0.35);
+            --text:      #f0f4ff;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            background-image:
+                linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Gradient top stripe */
+        .card::before {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, var(--green), var(--accent));
+        }
+
+        .card-header {
+            padding: 32px 32px 0;
+            text-align: center;
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 22px;
+            margin-bottom: 24px;
+        }
+        .logo span { color: var(--green); }
+
+        /* ── TAB SWITCHER ── */
+        .tabs {
+            display: flex;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 9px;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* ── FORM BODY ── */
+        .card-body { padding: 0 32px 32px; }
+
+        .form-panel { display: none; }
+        .form-panel.active { display: block; }
+
+        .field { margin-bottom: 16px; }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .field input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 14px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .field input:focus { border-color: rgba(99,102,241,0.5); }
+        .field input::placeholder { color: var(--muted); }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            background: var(--green);
+            color: #0a0e1a;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .btn-submit:hover   { opacity: 0.88; transform: scale(0.99); }
+        .btn-submit:active  { transform: scale(0.97); }
+        .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        /* ── STATUS ── */
+        .status {
+            display: none;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .status.error   { background: var(--red-dim);   border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
+        .status.success { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.25);  color: #86efac; }
+        .status.loading { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); color: #a5b4fc; }
+
+        .spinner {
+            display: inline-block; width: 13px; height: 13px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle; margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── DIVIDER ── */
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 20px 0;
+            color: var(--muted); font-size: 12px;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1;
+            height: 1px; background: var(--border);
+        }
+
+        /* ── ADMIN LINK ── */
+        .admin-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .admin-link a {
+            color: #a5b4fc;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .admin-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="card-header">
+        <div class="logo">💺 <span>Smart</span>Seat</div>
+
+        <!-- Tab switcher: Login / Register -->
+        <div class="tabs">
+            <button class="tab-btn active" id="tabLogin"    onclick="switchTab('login')">Login</button>
+            <button class="tab-btn"        id="tabRegister" onclick="switchTab('register')">Register</button>
+        </div>
+    </div>
+
+    <div class="card-body">
+
+        <!-- ── LOGIN FORM ── -->
+        <div class="form-panel active" id="panelLogin">
+            <div class="status" id="loginStatus"></div>
+
+            <div class="field">
+                <label>Roll Number</label>
+                <input type="text" id="loginRoll" placeholder="e.g. 101" autocomplete="off"
+                    onkeydown="if(event.key==='Enter') submitLogin()">
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password"
+                    onkeydown="if(event.key==='Enter') submitLogin()">
+            </div>
+            <button class="btn-submit" id="btnLogin" onclick="submitLogin()">Login →</button>
+
+            <div class="divider">or</div>
+            <div style="text-align:center; font-size:13px; color:var(--muted);">
+                New here? <a href="#" onclick="switchTab('register')" style="color:var(--green);text-decoration:none;font-weight:500;">Create an account</a>
+            </div>
+        </div>
+
+        <!-- ── REGISTER FORM ── -->
+        <div class="form-panel" id="panelRegister">
+            <div class="status" id="registerStatus"></div>
+
+            <div class="field">
+                <label>Roll Number</label>
+                <input type="text" id="regRoll" placeholder="e.g. 101" autocomplete="off">
+            </div>
+            <div class="field">
+                <label>Full Name</label>
+                <input type="text" id="regName" placeholder="e.g. Akshat Aswal">
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="regPassword" placeholder="Choose a strong password">
+            </div>
+            <div class="field">
+                <label>Confirm Password</label>
+                <input type="password" id="regConfirm" placeholder="Re-enter your password"
+                    onkeydown="if(event.key==='Enter') submitRegister()">
+            </div>
+            <button class="btn-submit" id="btnRegister" onclick="submitRegister()">Create Account →</button>
+
+            <div class="divider">or</div>
+            <div style="text-align:center; font-size:13px; color:var(--muted);">
+                Already registered? <a href="#" onclick="switchTab('login')" style="color:var(--green);text-decoration:none;font-weight:500;">Login here</a>
+            </div>
+        </div>
+
+        <!-- Admin login link at bottom -->
+        <div class="admin-link">
+            Are you an admin? <a href="/admin_login">Admin login →</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ── TAB SWITCHER ──
+    function switchTab(tab) {
+        document.getElementById('panelLogin').classList.toggle('active', tab === 'login');
+        document.getElementById('panelRegister').classList.toggle('active', tab === 'register');
+        document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+        document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+        // Clear statuses on switch
+        ['loginStatus','registerStatus'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+    }
+
+    function showStatus(id, type, html) {
+        const el = document.getElementById(id);
+        el.className = 'status ' + type;
+        el.innerHTML  = html;
+        el.style.display = 'block';
+    }
+
+    // ── LOGIN → POST /login ──
+    async function submitLogin() {
+        const roll     = document.getElementById('loginRoll').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const btn      = document.getElementById('btnLogin');
+
+        if (!roll || !password) {
+            showStatus('loginStatus', 'error', '✗ Please enter both roll number and password.');
+            return;
+        }
+
+        btn.disabled = true; btn.textContent = 'Logging in...';
+        showStatus('loginStatus', 'loading', '<span class="spinner"></span> Checking credentials...');
+
+        try {
+            const res  = await fetch('/login', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ roll_no: roll, password })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                showStatus('loginStatus', 'error', '✗ ' + data.error);
+            } else {
+                showStatus('loginStatus', 'success', '✓ Login successful! Redirecting...');
+                // Flask tells us where to go based on role
+                setTimeout(() => window.location.href = data.redirect, 800);
+            }
+        } catch(e) {
+            showStatus('loginStatus', 'error', '✗ Network error. Is Flask running?');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Login →';
+        }
+    }
+
+    // ── REGISTER → POST /register ──
+    async function submitRegister() {
+        const roll     = document.getElementById('regRoll').value.trim();
+        const name     = document.getElementById('regName').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const confirm  = document.getElementById('regConfirm').value;
+        const btn      = document.getElementById('btnRegister');
+
+        if (!roll || !name || !password || !confirm) {
+            showStatus('registerStatus', 'error', '✗ Please fill in all fields.');
+            return;
+        }
+
+        if (password !== confirm) {
+            showStatus('registerStatus', 'error', '✗ Passwords do not match.');
+            return;
+        }
+
+        if (password.length < 6) {
+            showStatus('registerStatus', 'error', '✗ Password must be at least 6 characters.');
+            return;
+        }
+
+        btn.disabled = true; btn.textContent = 'Creating account...';
+        showStatus('registerStatus', 'loading', '<span class="spinner"></span> Creating your account...');
+
+        try {
+            const res  = await fetch('/register', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ roll_no: roll, name, password })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                showStatus('registerStatus', 'error', '✗ ' + data.error);
+            } else {
+                showStatus('registerStatus', 'success', '✓ Account created! Please login.');
+                // Auto-switch to login tab after 1 second
+                setTimeout(() => switchTab('login'), 1200);
+            }
+        } catch(e) {
+            showStatus('registerStatus', 'error', '✗ Network error. Is Flask running?');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Create Account →';
+        }
+    }
+</script>
+</body>
+</html>

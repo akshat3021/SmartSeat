@@ -4,49 +4,549 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartSeat | Exam Portal</title>
-    <link rel="stylesheet" href="../static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ── RESET & BASE ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #0a0e1a;
+            --surface:   #111827;
+            --border:    rgba(255,255,255,0.08);
+            --green:     #22c55e;
+            --green-dim: rgba(34,197,94,0.12);
+            --red:       #ef4444;
+            --red-dim:   rgba(239,68,68,0.12);
+            --muted:     rgba(255,255,255,0.35);
+            --text:      #f0f4ff;
+            --accent:    #6366f1;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 16px 80px;
+            /* Subtle grid background */
+            background-image:
+                linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* ── HEADER ── */
+        header {
+            width: 100%;
+            max-width: 680px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 60px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo span {
+            color: var(--green);
+        }
+
+        .status-dot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ── SEARCH SECTION ── */
+        .search-section {
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .search-section h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(32px, 6vw, 52px);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 12px;
+        }
+
+        .search-section h1 em {
+            font-style: normal;
+            color: var(--green);
+        }
+
+        .search-section p {
+            color: var(--muted);
+            font-size: 15px;
+            margin-bottom: 36px;
+            font-weight: 300;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 6px 6px 6px 16px;
+            transition: border-color 0.2s;
+        }
+
+        .input-group:focus-within {
+            border-color: rgba(99,102,241,0.5);
+        }
+
+        .input-group input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+            min-width: 0;
+        }
+
+        .input-group input::placeholder { color: var(--muted); }
+
+        .input-group button {
+            background: var(--green);
+            color: #0a0e1a;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.15s;
+            white-space: nowrap;
+        }
+
+        .input-group button:hover   { opacity: 0.88; transform: scale(0.98); }
+        .input-group button:active  { transform: scale(0.95); }
+        .input-group button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .error-msg {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--red);
+            min-height: 20px;
+        }
+
+        /* ── RESULT CARD ── */
+        .result-card {
+            display: none;
+            width: 100%;
+            max-width: 680px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            animation: fadeUp 0.4s ease both;
+            margin-top: 32px;
+        }
+
+        /* Colored top stripe */
+        .result-card::before {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, var(--green), var(--accent));
+        }
+
+        .ticket-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 28px 28px 0;
+        }
+
+        .ticket-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .ticket-header p {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .close-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .close-btn:hover { background: var(--red-dim); color: var(--red); }
+
+        .seat-info {
+            display: flex;
+            gap: 20px;
+            padding: 16px 28px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .seat-info span {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .seat-badge {
+            display: inline-block;
+            background: var(--green-dim);
+            color: var(--green);
+            border: 1px solid rgba(34,197,94,0.2);
+            border-radius: 6px;
+            padding: 2px 10px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        /* ── VISUAL GRID ── */
+        .visual-grid-container {
+            padding: 24px 28px 28px;
+        }
+
+        .grid-label {
+            text-align: center;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .classroom-grid {
+            display: grid;
+            gap: 8px;
+            /* Columns set dynamically by JS */
+        }
+
+        .seat {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(16px, 3vw, 22px);
+            transition: transform 0.15s;
+            cursor: default;
+            position: relative;
+        }
+
+        .seat.occupied   { background: rgba(255,255,255,0.05); }
+        .seat.my-seat    {
+            background: var(--green-dim);
+            border-color: var(--green);
+            box-shadow: 0 0 20px rgba(34,197,94,0.2);
+            animation: glow 2s ease-in-out infinite;
+        }
+        .seat.gap-seat   { background: var(--red-dim); border-color: rgba(239,68,68,0.2); }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 16px rgba(34,197,94,0.2); }
+            50%       { box-shadow: 0 0 28px rgba(34,197,94,0.45); }
+        }
+
+        /* ── LEGEND ── */
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .legend-dot {
+            width: 12px; height: 12px;
+            border-radius: 3px;
+        }
+
+        .legend-dot.my    { background: var(--green-dim); border: 1px solid var(--green); }
+        .legend-dot.taken { background: rgba(255,255,255,0.05); border: 1px solid var(--border); }
+        .legend-dot.empty { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.2); }
+
+        /* ── LOADING STATE ── */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 40px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <header>
-            <div class="logo">💺 SmartSeat</div>
-        </header>
+    <header>
+        <div class="logo">💺 <span>Smart</span>Seat</div>
+        <div style="display:flex;align-items:center;gap:16px;"><div class="status-dot"><div class="dot"></div> Portal Live</div><a href="/logout" style="font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:5px 12px;border-radius:8px;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Logout</a></div>
+    </header>
 
-        <div class="search-section" id="searchBox">
-            <h1>Find Your Exam Seat</h1>
-            <p>Enter your Roll Number to see your arrangement.</p>
-            
-            <div class="input-group">
-                <input type="text" id="rollInput" placeholder="Ex: 200101" autocomplete="off">
-                <button onclick="findSeat()">Search</button>
+    <!-- ── SEARCH BOX ── -->
+    <div class="search-section" id="searchBox">
+        <p class="eyebrow">Exam Seating</p>
+        <h1>Find Your <em>Seat</em></h1>
+        <p>Enter your roll number to locate your exam seat instantly.</p>
+
+        <div class="input-group">
+            <input
+                type="text"
+                id="rollInput"
+                placeholder="Enter roll number, e.g. 101"
+                autocomplete="off"
+                onkeydown="if(event.key==='Enter') findSeat()"
+            >
+            <button id="searchBtn" onclick="findSeat()">Search →</button>
+        </div>
+        <p class="error-msg" id="errorMsg"></p>
+    </div>
+
+    <!-- ── RESULT CARD ── -->
+    <div class="result-card" id="resultCard">
+        <div class="ticket-header">
+            <div>
+                <h2 id="studentName">Hi, Student!</h2>
+                <p id="studentInfo">Branch: —</p>
             </div>
-            <p class="error-msg" id="errorMsg"></p>
+            <button class="close-btn" onclick="closeResult()">✕</button>
         </div>
 
-        <div class="result-card" id="resultCard" style="display: none;">
-            <div class="ticket-header">
-                <div>
-                    <h2>Hi, Akshat!</h2>
-                    <p>Exam: Design & Analysis of Algorithms</p>
-                </div>
-                <button class="close-btn" onclick="closeResult()">✕</button>
-            </div>
-            
-            <div class="seat-info">
-                <span>📍 Room 302</span>
-                <span>📅 Morning Shift</span>
-            </div>
+        <div class="seat-info">
+            <span>🎯 Roll No: <strong id="displayRoll">—</strong></span>
+            <span>🏫 <span id="roomDisplay">—</span></span>
+            <span>📍 Seat: <span class="seat-badge" id="seatDisplay">—</span></span>
+        </div>
 
-            <div class="visual-grid-container">
-                <h4>FRONT OF CLASS</h4>
-                <div class="classroom-grid" id="gridTarget">
-                    </div>
+        <div class="visual-grid-container">
+            <p class="grid-label">▼ &nbsp; Front of Class &nbsp; ▼</p>
+            <div class="classroom-grid" id="gridTarget"></div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot my"></div> Your seat</div>
+                <div class="legend-item"><div class="legend-dot taken"></div> Occupied</div>
+                <div class="legend-item"><div class="legend-dot empty"></div> Gap seat</div>
             </div>
         </div>
     </div>
 
-    <script src="../static/script.js"></script>
+    <script>
+    // ── STATE ──
+    let currentStudentRow = -1;
+    let currentStudentCol = -1;
+    let currentRoomNo     = '';
+
+    // ── FIND SEAT ──
+    // Calls Flask route: GET /seat/<roll_no>
+    // Then calls GET /grid to render the full classroom
+    async function findSeat() {
+        const input   = document.getElementById('rollInput');
+        const errorEl = document.getElementById('errorMsg');
+        const btn     = document.getElementById('searchBtn');
+        const roll    = input.value.trim();
+
+        // Clear previous errors
+        errorEl.textContent = '';
+
+        if (!roll) {
+            errorEl.textContent = 'Please enter a roll number.';
+            return;
+        }
+
+        // Show loading state on button
+        btn.textContent  = 'Searching...';
+        btn.disabled     = true;
+
+        try {
+            // ── STEP 1: Fetch this student's seat from Flask ──
+            const res  = await fetch(`/seat/${encodeURIComponent(roll)}`);
+            const data = await res.json();
+
+            if (!res.ok) {
+                // Flask returned an error (404 = not found, 400 = seats not assigned)
+                errorEl.textContent = data.error || 'Something went wrong.';
+                return;
+            }
+
+            // ── STEP 2: Save student seat position for grid rendering ──
+            currentStudentRow = data.row;
+            currentStudentCol = data.col;
+            currentRoomNo    = data.room_no;
+
+            // ── STEP 3: Populate the result card with real data ──
+            document.getElementById('studentName').textContent = `Hi, ${data.name}!`;
+            document.getElementById('studentInfo').textContent = `Branch: ${data.branch}`;
+            document.getElementById('displayRoll').textContent = data.roll_no;
+            document.getElementById('seatDisplay').textContent = data.display;
+            document.getElementById('roomDisplay').textContent = 'Room ' + data.room_no;
+
+            // ── STEP 4: Fetch the full grid and render it ──
+            await renderGrid(data.room_no);
+
+            // ── STEP 5: Show the result card ──
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        } catch (err) {
+            // Network error — Flask server might be down
+            errorEl.textContent = 'Cannot connect to server. Is Flask running?';
+            console.error(err);
+        } finally {
+            btn.textContent = 'Search →';
+            btn.disabled    = false;
+        }
+    }
+
+    // ── RENDER GRID ──
+    // Calls Flask route: GET /grid
+    // Returns all assigned seats so we can draw the full classroom
+    async function renderGrid(roomNo) {
+        const gridEl = document.getElementById('gridTarget');
+        gridEl.innerHTML = '<div class="loading"><div class="spinner"></div> Loading grid...</div>';
+
+        try {
+            const res  = await fetch('/grid/' + encodeURIComponent(roomNo));
+            const data = await res.json();
+
+            // data = { rows: 5, cols: 5, seats: [ {roll_no, name, branch, row, col}, ... ] }
+            const { rows, cols, seats } = data;
+
+            // Set CSS grid columns dynamically based on room size
+            gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            gridEl.innerHTML = '';
+
+            // Build a lookup map: "row-col" -> seat data
+            // So we know which seats are occupied
+            const occupiedMap = {};
+            seats.forEach(s => {
+                occupiedMap[`${s.row}-${s.col}`] = s;
+            });
+
+            // Render every cell in the grid
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const cell    = document.createElement('div');
+                    const key     = `${r}-${c}`;
+                    const isMe    = (r === currentStudentRow && c === currentStudentCol);
+                    const student = occupiedMap[key];
+
+                    if (isMe) {
+                        // ── MY SEAT — highlighted green ──
+                        cell.className = 'seat my-seat';
+                        cell.textContent = '👋';
+                        cell.title = 'Your seat';
+                    } else if (student) {
+                        // ── OCCUPIED by someone else ──
+                        cell.className = 'seat occupied';
+                        cell.textContent = '🪑';
+                        cell.title = `${student.branch}`;
+                    } else {
+                        // ── EMPTY / GAP SEAT ──
+                        cell.className = 'seat gap-seat';
+                        cell.textContent = '';
+                        cell.title = 'Empty';
+                    }
+
+                    gridEl.appendChild(cell);
+                }
+            }
+        } catch (err) {
+            gridEl.innerHTML = '<p style="color:var(--muted);padding:20px;text-align:center">Could not load grid.</p>';
+            console.error(err);
+        }
+    }
+
+    // ── CLOSE RESULT ──
+    function closeResult() {
+        document.getElementById('resultCard').style.display = 'none';
+        document.getElementById('rollInput').value = '';
+        document.getElementById('errorMsg').textContent = '';
+        currentStudentRow = -1;
+        currentStudentCol = -1;
+    }
+    </script>
 </body>
 </html>

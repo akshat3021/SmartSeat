@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSeat | Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0a0e1a; --surface: #111827; --surface2: #1a2236;
+            --border: rgba(255,255,255,0.08); --accent: #6366f1;
+            --accent-dim: rgba(99,102,241,0.12); --red: #ef4444;
+            --red-dim: rgba(239,68,68,0.10); --green: #22c55e;
+            --green-dim: rgba(34,197,94,0.12); --muted: rgba(255,255,255,0.35); --text: #f0f4ff;
+        }
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: 'DM Sans', sans-serif; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center; padding: 24px 16px;
+            background-image: linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .card {
+            width: 100%; max-width: 400px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+            animation: fadeUp 0.4s ease both;
+        }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .card::before { content:''; display:block; height:3px; background: linear-gradient(90deg, var(--accent), #8b5cf6); }
+        .card-header { padding: 32px 32px 24px; text-align: center; }
+        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; margin-bottom: 8px; }
+        .logo span { color: var(--accent); }
+        .badge {
+            display: inline-block; background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;
+            font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+            padding: 3px 10px; border-radius: 20px; margin-bottom: 24px;
+        }
+        .card-body { padding: 0 32px 32px; }
+        .field { margin-bottom: 16px; }
+        .field label { display:block; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; font-weight:500; }
+        .field input {
+            width:100%; background:var(--surface2); border:1px solid var(--border);
+            border-radius:10px; padding:13px 14px; color:var(--text);
+            font-family:'DM Sans',sans-serif; font-size:15px; outline:none; transition:border-color 0.2s;
+        }
+        .field input:focus { border-color: rgba(99,102,241,0.5); }
+        .field input::placeholder { color: var(--muted); }
+        .btn-submit {
+            width:100%; padding:14px; margin-top:8px; background:var(--accent);
+            color:#fff; border:none; border-radius:10px;
+            font-family:'Syne',sans-serif; font-weight:800; font-size:15px;
+            cursor:pointer; transition:opacity 0.2s, transform 0.15s;
+        }
+        .btn-submit:hover { opacity:0.88; transform:scale(0.99); }
+        .btn-submit:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+        .status { display:none; padding:12px 14px; border-radius:8px; font-size:13px; margin-bottom:16px; line-height:1.5; }
+        .status.error   { background:var(--red-dim); border:1px solid rgba(239,68,68,0.25); color:#fca5a5; }
+        .status.success { background:var(--green-dim); border:1px solid rgba(34,197,94,0.25); color:#86efac; }
+        .status.loading { background:var(--accent-dim); border:1px solid rgba(99,102,241,0.25); color:#a5b4fc; }
+        .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,0.2); border-top-color:currentColor; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .back-link { text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid var(--border); font-size:13px; color:var(--muted); }
+        .back-link a { color:var(--green); text-decoration:none; font-weight:500; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="card-header">
+        <div class="logo">💺 <span>Smart</span>Seat</div>
+        <div class="badge">Admin Access</div>
+    </div>
+    <div class="card-body">
+        <div class="status" id="adminLoginStatus"></div>
+        <div class="field">
+            <label>Username</label>
+            <input type="text" id="adminUser" placeholder="admin username" autocomplete="off"
+                onkeydown="if(event.key==='Enter') submitAdminLogin()">
+        </div>
+        <div class="field">
+            <label>Password</label>
+            <input type="password" id="adminPass" placeholder="admin password"
+                onkeydown="if(event.key==='Enter') submitAdminLogin()">
+        </div>
+        <button class="btn-submit" id="btnAdminLogin" onclick="submitAdminLogin()">Admin Login →</button>
+        <div class="back-link">
+            <a href="/login">← Back to student login</a>
+        </div>
+    </div>
+</div>
+<script>
+    function showStatus(type, html) {
+        const el = document.getElementById('adminLoginStatus');
+        el.className = 'status ' + type; el.innerHTML = html; el.style.display = 'block';
+    }
+    async function submitAdminLogin() {
+        const username = document.getElementById('adminUser').value.trim();
+        const password = document.getElementById('adminPass').value;
+        const btn      = document.getElementById('btnAdminLogin');
+        if (!username || !password) { showStatus('error', '✗ Please enter username and password.'); return; }
+        btn.disabled = true; btn.textContent = 'Logging in...';
+        showStatus('loading', '<span class="spinner"></span> Verifying admin credentials...');
+        try {
+            const res  = await fetch('/admin_login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username, password }) });
+            const data = await res.json();
+            if (!res.ok) { showStatus('error', '✗ ' + data.error); }
+            else { showStatus('success', '✓ Access granted! Redirecting...'); setTimeout(() => window.location.href = data.redirect, 800); }
+        } catch(e) { showStatus('error', '✗ Network error. Is Flask running?'); }
+        finally { btn.disabled = false; btn.textContent = 'Admin Login →'; }
+    }
+</script>
+</body>
+</html>

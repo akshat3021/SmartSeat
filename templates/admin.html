@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSeat | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg:        #0a0e1a;
+            --surface:   #111827;
+            --surface2:  #1a2236;
+            --border:    rgba(255,255,255,0.08);
+            --green:     #22c55e;
+            --green-dim: rgba(34,197,94,0.12);
+            --red:       #ef4444;
+            --red-dim:   rgba(239,68,68,0.10);
+            --amber:     #f59e0b;
+            --amber-dim: rgba(245,158,11,0.12);
+            --accent:    #6366f1;
+            --muted:     rgba(255,255,255,0.35);
+            --text:      #f0f4ff;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            padding: 40px 16px 80px;
+            background-image:
+                linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .page { max-width: 720px; margin: 0 auto; }
+
+        header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-bottom: 20px; border-bottom: 1px solid var(--border);
+            margin-bottom: 48px;
+        }
+        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; }
+        .logo span { color: var(--green); }
+        .admin-badge {
+            background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+            color: #a5b4fc; font-size: 11px; font-weight: 500;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 4px 12px; border-radius: 20px;
+        }
+        .page-title { margin-bottom: 40px; }
+        .eyebrow {
+            font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 12px; font-weight: 500;
+        }
+        .page-title h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: 800; letter-spacing: -1px; line-height: 1.1;
+        }
+        .page-title h1 em { font-style: normal; color: var(--green); }
+        .steps { display: flex; flex-direction: column; gap: 16px; }
+        .step-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; overflow: hidden; transition: border-color 0.2s;
+        }
+        .step-card.active  { border-color: rgba(34,197,94,0.3); }
+        .step-card.success { border-color: rgba(34,197,94,0.5); }
+        .step-card.error   { border-color: rgba(239,68,68,0.4); }
+        .step-header {
+            display: flex; align-items: center; gap: 16px; padding: 20px 24px;
+        }
+        .step-num {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px;
+            color: var(--muted); flex-shrink: 0; transition: background 0.3s, color 0.3s;
+        }
+        .step-card.active  .step-num { background: var(--green-dim); color: var(--green); border-color: rgba(34,197,94,0.3); }
+        .step-card.success .step-num { background: var(--green-dim); color: var(--green); border-color: rgba(34,197,94,0.4); }
+        .step-card.error   .step-num { background: var(--red-dim);   color: var(--red);   border-color: rgba(239,68,68,0.3); }
+        .step-info h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+        .step-info p  { font-size: 13px; color: var(--muted); font-weight: 300; }
+        .step-body { padding: 0 24px 24px; border-top: 1px solid var(--border); }
+
+        /* Mode cards */
+        .mode-row { display: flex; gap: 10px; margin-top: 20px; }
+        .mode-card {
+            flex: 1; border: 1px solid var(--border); border-radius: 12px;
+            padding: 16px; text-align: center; background: var(--surface2);
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
+        }
+        .mode-card:hover     { border-color: rgba(99,102,241,0.4); }
+        .mode-card.active-mode { border-color: var(--green); background: var(--green-dim); }
+
+        /* Drop zone */
+        .drop-zone {
+            margin-top: 20px; border: 2px dashed var(--border);
+            border-radius: 12px; padding: 30px 24px; text-align: center;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative;
+        }
+        .drop-zone:hover, .drop-zone.dragover { border-color: rgba(34,197,94,0.4); background: var(--green-dim); }
+        .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .drop-zone p   { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+        .drop-zone strong { color: var(--green); font-weight: 500; }
+        .drop-zone .file-hint { font-size: 11px; color: var(--muted); opacity: 0.6; margin-top: 6px; }
+        .selected-file { margin-top: 10px; font-size: 13px; color: var(--green); display: none; }
+
+        /* Format hint */
+        .format-hint {
+            margin-top: 14px; background: var(--surface2);
+            border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+        }
+        .format-hint p    { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+        .format-hint code { font-family: 'Courier New', monospace; font-size: 13px; color: var(--amber); line-height: 1.8; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 13px 28px; border-radius: 10px;
+            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
+            cursor: pointer; border: none; transition: transform 0.15s, opacity 0.15s; margin-top: 16px;
+        }
+        .btn:hover   { opacity: 0.88; transform: scale(0.98); }
+        .btn:active  { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-green  { background: var(--green);  color: #0a0e1a; }
+        .btn-accent { background: var(--accent);  color: #fff; }
+        .btn-ghost  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+        /* Status */
+        .status { display: none; margin-top: 14px; padding: 14px 16px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
+        .status.success { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
+        .status.error   { background: var(--red-dim);   border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
+        .status.loading { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.25); color: #fcd34d; }
+        .spinner {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.2); border-top-color: currentColor;
+            border-radius: 50%; animation: spin 0.7s linear infinite;
+            vertical-align: middle; margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Table */
+        .table-wrap { margin-top: 20px; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead tr { background: var(--surface2); }
+        th { padding: 10px 16px; text-align: left; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:last-child td { border-bottom: none; }
+        .pill { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .pill.assigned { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+        .pill.pending  { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+        .pill.room     { background: rgba(99,102,241,0.12); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.2); }
+
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; text-decoration: none; margin-bottom: 32px; transition: color 0.2s; }
+        .back-link:hover { color: var(--text); }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <div class="logo">💺 <span>Smart</span>Seat</div>
+        <div style="display:flex;align-items:center;gap:12px;"><div class="admin-badge">Admin Panel</div><a href="/logout" style="font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:5px 12px;border-radius:8px;">Logout</a></div>
+    </header>
+
+    <a class="back-link" href="/">← Back to student portal</a>
+
+    <div class="page-title">
+        <p class="eyebrow">Control Centre</p>
+        <h1>Manage <em>Exam</em> Seating</h1>
+    </div>
+
+    <div class="steps">
+
+        <!-- ══ STEP 1: Mode ══ -->
+        <div class="step-card active" id="card1">
+            <div class="step-header">
+                <div class="step-num">1</div>
+                <div class="step-info">
+                    <h3>Choose Seating Mode</h3>
+                    <p>Normal blocks 4 directions · Strict blocks all 8 including diagonals</p>
+                </div>
+            </div>
+            <div class="step-body">
+                <div class="mode-row">
+                    <label style="flex:1;cursor:pointer;">
+                        <input type="radio" name="mode" value="0" checked style="display:none" onchange="updateModeUI()">
+                        <div class="mode-card active-mode" id="cardNormal">
+                            <div style="font-size:22px;margin-bottom:8px;">🔲</div>
+                            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px;">Normal Mode</div>
+                            <div style="font-size:12px;color:var(--muted);line-height:1.5;">Top · Bottom · Left · Right</div>
+                        </div>
+                    </label>
+                    <label style="flex:1;cursor:pointer;">
+                        <input type="radio" name="mode" value="1" style="display:none" onchange="updateModeUI()">
+                        <div class="mode-card" id="cardStrict">
+                            <div style="font-size:22px;margin-bottom:8px;">🔷</div>
+                            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px;">Strict Mode</div>
+                            <div style="font-size:12px;color:var(--muted);line-height:1.5;">All 8 directions + diagonals</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ STEP 2: Upload Students CSV ══ -->
+        <div class="step-card" id="card2">
+            <div class="step-header">
+                <div class="step-num">2</div>
+                <div class="step-info">
+                    <h3>Upload Student List</h3>
+                    <p>CSV with roll number, name, and branch for every student</p>
+                </div>
+            </div>
+            <div class="step-body">
+                <div class="drop-zone" id="dropStudents">
+                    <input type="file" id="studentFile" accept=".csv,.txt" onchange="fileSelected(this,'studentFileName')">
+                    <div style="font-size:28px;margin-bottom:8px;">👥</div>
+                    <p><strong>Click to choose</strong> or drag & drop</p>
+                    <p class="file-hint">students.csv</p>
+                </div>
+                <p class="selected-file" id="studentFileName"></p>
+                <div class="format-hint">
+                    <p>Expected format</p>
+                    <code>101, Amit Kumar, CSE<br>102, Rahul Singh, ECE<br>103, Priya Sharma, CSE</code>
+                </div>
+                <button class="btn btn-green" onclick="uploadStudents()" id="btnUploadStudents">Upload Students</button>
+                <div class="status" id="statusStudents"></div>
+            </div>
+        </div>
+
+        <!-- ══ STEP 3: Upload Rooms CSV (NEW) ══ -->
+        <div class="step-card" id="card3">
+            <div class="step-header">
+                <div class="step-num">3</div>
+                <div class="step-info">
+                    <h3>Upload Room List</h3>
+                    <p>CSV with room number, rows, and columns for every exam hall</p>
+                </div>
+            </div>
+            <div class="step-body">
+                <div class="drop-zone" id="dropRooms">
+                    <input type="file" id="roomFile" accept=".csv,.txt" onchange="fileSelected(this,'roomFileName')">
+                    <div style="font-size:28px;margin-bottom:8px;">🏫</div>
+                    <p><strong>Click to choose</strong> or drag & drop</p>
+                    <p class="file-hint">rooms.csv</p>
+                </div>
+                <p class="selected-file" id="roomFileName"></p>
+                <div class="format-hint">
+                    <p>Expected format &nbsp;(room_no, rows, cols)</p>
+                    <code>301, 5, 6<br>302, 4, 8<br>303, 6, 6</code>
+                </div>
+                <button class="btn btn-green" onclick="uploadRooms()" id="btnUploadRooms">Upload Rooms</button>
+                <div class="status" id="statusRooms"></div>
+            </div>
+        </div>
+
+        <!-- ══ STEP 4: Run Solver ══ -->
+        <div class="step-card" id="card4">
+            <div class="step-header">
+                <div class="step-num">4</div>
+                <div class="step-info">
+                    <h3>Generate Seating Arrangement</h3>
+                    <p>Runs the C++ algorithm for every room automatically</p>
+                </div>
+            </div>
+            <div class="step-body">
+                <button class="btn btn-accent" onclick="runSolver()" id="btnSolver">⚡ Run SmartSeat Algorithm</button>
+                <div class="status" id="statusSolver"></div>
+            </div>
+        </div>
+
+        <!-- ══ STEP 5: View Results ══ -->
+        <div class="step-card" id="card5">
+            <div class="step-header">
+                <div class="step-num">5</div>
+                <div class="step-info">
+                    <h3>View Results</h3>
+                    <p>All students with their assigned room and seat</p>
+                </div>
+            </div>
+            <div class="step-body">
+                <button class="btn btn-ghost" onclick="loadStudents()" id="btnLoad">Refresh List</button>
+                <div class="status" id="statusLoad"></div>
+                <div class="table-wrap" id="tableWrap" style="display:none">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Name</th>
+                                <th>Branch</th>
+                                <th>Room</th>
+                                <th>Seat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ── MODE TOGGLE ──
+    function updateModeUI() {
+        const val = document.querySelector('input[name="mode"]:checked').value;
+        document.getElementById('cardNormal').classList.toggle('active-mode', val === '0');
+        document.getElementById('cardStrict').classList.toggle('active-mode', val === '1');
+    }
+
+    // ── FILE SELECTED ──
+    function fileSelected(input, labelId) {
+        const name = input.files[0]?.name;
+        const el   = document.getElementById(labelId);
+        if (name) { el.textContent = '✓ ' + name; el.style.display = 'block'; }
+    }
+
+    // ── DRAG & DROP ──
+    ['dropStudents','dropRooms'].forEach(id => {
+        const zone = document.getElementById(id);
+        zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault(); zone.classList.remove('dragover');
+            const input = zone.querySelector('input[type="file"]');
+            if (e.dataTransfer.files[0]) {
+                input.files = e.dataTransfer.files;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    // ── STATUS HELPER ──
+    function showStatus(id, type, html) {
+        const el = document.getElementById(id);
+        el.className = 'status ' + type;
+        el.innerHTML = html;
+        el.style.display = 'block';
+    }
+
+    // ── STEP 2: UPLOAD STUDENTS → POST /upload_students ──
+    async function uploadStudents() {
+        const fileInput = document.getElementById('studentFile');
+        const btn       = document.getElementById('btnUploadStudents');
+        if (!fileInput.files[0]) { showStatus('statusStudents','error','✗ Please select a CSV file first.'); return; }
+
+        btn.disabled = true; btn.textContent = 'Uploading...';
+        showStatus('statusStudents','loading','<span class="spinner"></span> Uploading students...');
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            const res  = await fetch('/upload_students', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!res.ok) {
+                showStatus('statusStudents','error','✗ ' + data.error);
+                document.getElementById('card2').className = 'step-card error';
+            } else {
+                const warns = data.errors?.length ? '<br><small>' + data.errors.join(', ') + '</small>' : '';
+                showStatus('statusStudents','success','✓ ' + data.message + warns);
+                document.getElementById('card2').className = 'step-card success';
+                document.getElementById('card3').className = 'step-card active';
+            }
+        } catch(e) { showStatus('statusStudents','error','✗ Network error. Is Flask running?'); }
+        finally { btn.disabled = false; btn.textContent = 'Upload Students'; }
+    }
+
+    // ── STEP 3: UPLOAD ROOMS → POST /upload_rooms ──
+    async function uploadRooms() {
+        const fileInput = document.getElementById('roomFile');
+        const btn       = document.getElementById('btnUploadRooms');
+        if (!fileInput.files[0]) { showStatus('statusRooms','error','✗ Please select a CSV file first.'); return; }
+
+        btn.disabled = true; btn.textContent = 'Uploading...';
+        showStatus('statusRooms','loading','<span class="spinner"></span> Uploading rooms...');
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            const res  = await fetch('/upload_rooms', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!res.ok) {
+                showStatus('statusRooms','error','✗ ' + data.error);
+                document.getElementById('card3').className = 'step-card error';
+            } else {
+                const warns = data.errors?.length ? '<br><small>' + data.errors.join(', ') + '</small>' : '';
+                showStatus('statusRooms','success','✓ ' + data.message + warns);
+                document.getElementById('card3').className = 'step-card success';
+                document.getElementById('card4').className = 'step-card active';
+            }
+        } catch(e) { showStatus('statusRooms','error','✗ Network error. Is Flask running?'); }
+        finally { btn.disabled = false; btn.textContent = 'Upload Rooms'; }
+    }
+
+    // ── STEP 4: RUN SOLVER → POST /run ──
+    async function runSolver() {
+        const btn         = document.getElementById('btnSolver');
+        const strict_mode = parseInt(document.querySelector('input[name="mode"]:checked').value);
+        const modeLabel   = strict_mode === 1 ? 'Strict Mode' : 'Normal Mode';
+
+        btn.disabled = true; btn.textContent = '⚡ Running...';
+        showStatus('statusSolver','loading','<span class="spinner"></span> Running C++ solver across all rooms (' + modeLabel + ')...');
+
+        try {
+            const res  = await fetch('/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ strict_mode })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                showStatus('statusSolver','error','✗ ' + data.error);
+                document.getElementById('card4').className = 'step-card error';
+            } else {
+                showStatus('statusSolver','success',
+                    '✓ ' + data.message + ' &nbsp;|&nbsp; ' + modeLabel +
+                    ' &nbsp;|&nbsp; ' + data.rooms_done + ' rooms processed');
+                document.getElementById('card4').className = 'step-card success';
+                document.getElementById('card5').className = 'step-card active';
+                loadStudents();
+            }
+        } catch(e) { showStatus('statusSolver','error','✗ Network error. Is Flask running?'); }
+        finally { btn.disabled = false; btn.textContent = '⚡ Run SmartSeat Algorithm'; }
+    }
+
+    // ── STEP 5: LOAD STUDENTS → GET /students ──
+    async function loadStudents() {
+        const btn = document.getElementById('btnLoad');
+        btn.disabled = true;
+        showStatus('statusLoad','loading','<span class="spinner"></span> Loading...');
+
+        try {
+            const res      = await fetch('/students');
+            const students = await res.json();
+            document.getElementById('statusLoad').style.display = 'none';
+
+            if (!students.length) {
+                showStatus('statusLoad','error','✗ No students in database yet.');
+                return;
+            }
+
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = students.map(s => {
+                const hasRoom = s.room_no && s.room_no !== '';
+                const hasSeat = s.seat_row !== -1;
+                const roomCell = hasRoom
+                    ? `<span class="pill room">Room ${s.room_no}</span>`
+                    : '<span style="color:var(--muted)">—</span>';
+                const seatCell = hasSeat
+                    ? `<span class="pill assigned">Row ${s.seat_row+1}, Seat ${s.seat_col+1}</span>`
+                    : `<span class="pill pending">Pending</span>`;
+                return `<tr>
+                    <td>${s.roll_no}</td>
+                    <td>${s.name}</td>
+                    <td>${s.branch}</td>
+                    <td>${roomCell}</td>
+                    <td>${seatCell}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('tableWrap').style.display = 'block';
+        } catch(e) { showStatus('statusLoad','error','✗ Could not load students.'); }
+        finally { btn.disabled = false; btn.textContent = 'Refresh List'; }
+    }
+</script>
+</body>
+</html>

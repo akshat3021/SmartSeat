@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 5 5
 1 CSE
 2 ECE
@@ -15,3 +16,7 @@
 14 MECH
 15 MECH
 16 MECH
+=======
+4 8 0
+2 CSE
+>>>>>>> 9137a56 (Login / Authentication System Implimented)

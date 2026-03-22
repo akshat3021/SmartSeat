@@ -16,12 +16,16 @@ struct Student {
 
 // --- GLOBAL VARIABLES ---
 int ROWS, COLS;
+int STRICT_MODE = 0; // 0 = Normal (4 directions), 1 = Strict (8 directions + diagonals)
 vector<Student> students;
-vector<vector<string>> roomMap; // Stores which branch is in which seat
+vector<vector<string> > roomMap; // Stores which branch is in which seat
 
 // --- CHECKING FOR CONFLICTS ---
 // This function checks if it's safe to place a student of 'branch' at (r, c)
+// NORMAL MODE  (STRICT_MODE=0): checks 4 neighbours (Top, Bottom, Left, Right)
+// STRICT MODE  (STRICT_MODE=1): checks all 8 neighbours (4 sides + 4 diagonals)
 bool isSafe(int r, int c, string branch) {
+<<<<<<< HEAD
     // Check Top
     if (r > 0 && roomMap[r - 1][c] == branch) return false; 
     // Check Bottom
@@ -30,10 +34,21 @@ bool isSafe(int r, int c, string branch) {
     if (c > 0 && roomMap[r][c - 1] == branch) return false;
     // Check Right
     if (c < COLS - 1 && roomMap[r][c + 1] == branch) return false;
+=======
+    // Always check 4 cardinal directions
+    if (r > 0          && roomMap[r - 1][c] == branch) return false; // Top
+    if (r < ROWS - 1   && roomMap[r + 1][c] == branch) return false; // Bottom
+    if (c > 0          && roomMap[r][c - 1] == branch) return false; // Left
+    if (c < COLS - 1   && roomMap[r][c + 1] == branch) return false; // Right
+>>>>>>> 9137a56 (Login / Authentication System Implimented)
 
-    // STRICT MODE: Check Diagonals (Optional - currently enabled)
-    if (r > 0 && c > 0 && roomMap[r - 1][c - 1] == branch) return false; // Top-Left
-    if (r > 0 && c < COLS - 1 && roomMap[r - 1][c + 1] == branch) return false; // Top-Right
+    // Only check diagonals in STRICT MODE
+    if (STRICT_MODE == 1) {
+        if (r > 0        && c > 0        && roomMap[r-1][c-1] == branch) return false; // Top-Left
+        if (r > 0        && c < COLS - 1 && roomMap[r-1][c+1] == branch) return false; // Top-Right
+        if (r < ROWS - 1 && c > 0        && roomMap[r+1][c-1] == branch) return false; // Bottom-Left
+        if (r < ROWS - 1 && c < COLS - 1 && roomMap[r+1][c+1] == branch) return false; // Bottom-Right
+    }
 
     return true;
 }
@@ -41,7 +56,7 @@ bool isSafe(int r, int c, string branch) {
 // --- THE BACKTRACKING ALGORITHM (The Brain) ---
 bool solve(int studentIdx) {
     // Base Case: If we have placed all students, we are done!
-    if (studentIdx == students.size()) {
+    if (studentIdx == (int)students.size()) {
         return true;
     }
 
@@ -88,8 +103,10 @@ int main() {
         return 1;
     }
 
-    // 2. READ ROOM DIMENSIONS
-    inFile >> ROWS >> COLS;
+    // 2. READ ROOM DIMENSIONS + MODE
+    // input.txt line 1 format:  ROWS COLS MODE
+    // MODE: 0 = Normal (4 directions), 1 = Strict (8 directions)
+    inFile >> ROWS >> COLS >> STRICT_MODE;
     
     // Initialize the room map with "EMPTY"
     roomMap.resize(ROWS, vector<string>(COLS, "EMPTY"));
@@ -98,7 +115,12 @@ int main() {
     int id;
     string branch;
     while (inFile >> id >> branch) {
-        students.push_back({id, branch});
+        Student s;
+        s.id = id;
+        s.branch = branch;
+        s.row = -1;
+        s.col = -1;
+        students.push_back(s);
     }
     inFile.close();
 
@@ -106,11 +128,11 @@ int main() {
     if (solve(0)) {
         // 5. WRITE OUTPUT FILE (For Python to read)
         ofstream outFile("output.txt");
-        for (const auto& s : students) {
-            outFile << s.id << " " << s.branch << " " << s.row << " " << s.col << endl;
+        for (int i = 0; i < (int)students.size(); i++) {
+            outFile << students[i].id << " " << students[i].branch << " " << students[i].row << " " << students[i].col << endl;
         }
         outFile.close();
-        cout << "Success: Arrangement Generated." << endl;
+        cout << "Success: Arrangement Generated. Mode=" << STRICT_MODE << endl;
     } else {
         cout << "Failure: Cannot fit students strictly." << endl;
     }
