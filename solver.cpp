@@ -23,7 +23,7 @@ vector<vector<string>> roomMap; // Stores which branch is in which seat
 // This function checks if it's safe to place a student of 'branch' at (r, c)
 bool isSafe(int r, int c, string branch) {
     // Check Top
-    if (r > 0 && roomMap[r - 1][c] == branch) return false;
+    if (r > 0 && roomMap[r - 1][c] == branch) return false; 
     // Check Bottom
     if (r < ROWS - 1 && roomMap[r + 1][c] == branch) return false;
     // Check Left
@@ -48,6 +48,9 @@ bool solve(int studentIdx) {
     string currentBranch = students[studentIdx].branch;
 
     // Try to find a seat for this student
+    // At starting [empty(0,0) , empty , ...., empty]
+    //             .   .   .   .   .   .    .    .
+    //             [empty , empty , ...., empty(R-1,C-1)]
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLS; j++) {
             
@@ -77,6 +80,7 @@ bool solve(int studentIdx) {
 
 // --- MAIN FUNCTION ---
 int main() {
+
     // 1. OPEN INPUT FILE (Sent by Python)
     ifstream inFile("input.txt");
     if (!inFile) {
