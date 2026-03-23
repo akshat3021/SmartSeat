@@ -38,6 +38,17 @@ cursor.execute('''
     )
 ''')
 
+# ── TABLE 3.5: exams ── (NEW)
+# Stores current exam name, subject, date set by admin
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS exams (
+        id        INTEGER PRIMARY KEY AUTOINCREMENT,
+        exam_name TEXT NOT NULL,
+        subject   TEXT DEFAULT '',
+        exam_date TEXT NOT NULL
+    )
+''')
+
 # ── TABLE 4: admins ── (NEW)
 # Separate table for admin accounts
 # Passwords are hashed — never stored as plain text

@@ -354,16 +354,25 @@ def run_solver():
         conn.close()
         return jsonify({"error": f"Too many students ({len(students)}) for total capacity ({total_capacity})."}), 400
 
-    students    = list(students)
-    room_list   = list(rooms)
+    students     = list(students)
+    room_list    = list(rooms)
     room_buckets = {r["room_no"]: [] for r in room_list}
-    room_index  = 0
 
+    # Fill each room sequentially — move to next room only when current is full
+    # OLD round-robin caused IndexError when room_index jumped past list end
+    room_index = 0
     for student in students:
-        while len(room_buckets[room_list[room_index]["room_no"]]) >= room_list[room_index]["rows"] * room_list[room_index]["cols"]:
+        # Advance past any full rooms
+        while room_index < len(room_list) and \
+              len(room_buckets[room_list[room_index]["room_no"]]) >= \
+              room_list[room_index]["rows"] * room_list[room_index]["cols"]:
             room_index += 1
+
+        if room_index >= len(room_list):
+            conn.close()
+            return jsonify({"error": "Not enough capacity. Upload more rooms."}), 400
+
         room_buckets[room_list[room_index]["room_no"]].append(student)
-        room_index = (room_index + 1) % len(room_list)
 
     cursor     = conn.cursor()
     rooms_done = 0
@@ -395,19 +404,35 @@ def run_solver():
             conn.close()
             return jsonify({"error": f"output.txt missing after room {room_no}."}), 500
 
+        updated_count = 0
         with open(OUTPUT_FILE, "r") as f:
-            for line in f:
-                line = line.strip()
-                if not line: continue
-                parts = line.split()
-                if len(parts) != 4: continue
-                cursor.execute(
-                    "UPDATE students SET room_no=?, seat_row=?, seat_col=? WHERE id=?",
-                    (room_no, int(parts[2]), int(parts[3]), int(parts[0]))
-                )
+            output_lines = f.readlines()
+
+        # DEBUG: print first 3 lines of output.txt to terminal
+        print(f"[DEBUG] Room {room_no} output.txt first 3 lines: {output_lines[:3]}")
+
+        for line in output_lines:
+            line = line.strip()
+            if not line: continue
+            parts = line.split()
+            if len(parts) != 4: continue
+            student_id = int(parts[0])
+            seat_row   = int(parts[2])
+            seat_col   = int(parts[3])
+            cursor.execute(
+                "UPDATE students SET room_no=?, seat_row=?, seat_col=? WHERE id=?",
+                (room_no, seat_row, seat_col, student_id)
+            )
+            updated_count += cursor.rowcount   # rowcount = 1 if UPDATE matched, 0 if not
+
+        print(f"[DEBUG] Room {room_no}: {updated_count} rows updated in DB")
         rooms_done += 1
 
     conn.commit()
+
+    # DEBUG: verify commit actually saved
+    verify = conn.execute("SELECT COUNT(*) FROM students WHERE seat_row != -1").fetchone()[0]
+    print(f"[DEBUG] After commit: {verify} students have seats assigned")
     conn.close()
 
     return jsonify({
@@ -434,6 +459,162 @@ def get_rooms():
     conn.close()
     return jsonify([dict(r) for r in rooms])
 
+
+
+
+# ============================================================
+#  ROUTE: Set Exam Info  POST /set_exam  (admin only)
+#  Admin sets exam name, subject and date before running solver
+# ============================================================
+@app.route("/set_exam", methods=["POST"])
+@admin_required
+def set_exam():
+    data    = request.get_json(silent=True) or {}
+    name    = data.get("exam_name", "").strip()
+    subject = data.get("subject", "").strip()
+    date    = data.get("exam_date", "").strip()
+
+    if not name or not date:
+        return jsonify({"error": "Exam name and date are required."}), 400
+
+    conn   = get_db_connection()
+    cursor = conn.cursor()
+
+    # We only keep one current exam at a time
+    cursor.execute("DELETE FROM exams")
+    cursor.execute(
+        "INSERT INTO exams (exam_name, subject, exam_date) VALUES (?, ?, ?)",
+        (name, subject, date)
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"message": f"Exam info saved: {name} on {date}"})
+
+
+# ── GET current exam info ──
+@app.route("/exam_info")
+def exam_info():
+    conn = get_db_connection()
+    exam = conn.execute("SELECT * FROM exams ORDER BY id DESC LIMIT 1").fetchone()
+    conn.close()
+    if not exam:
+        return jsonify({"exam_name": "", "subject": "", "exam_date": ""})
+    return jsonify(dict(exam))
+
+
+# ============================================================
+#  ROUTE: Stats  GET /stats  (admin only)
+#  Returns summary stats for the dashboard
+# ============================================================
+@app.route("/stats")
+@admin_required
+def get_stats():
+    conn = get_db_connection()
+
+    total_students  = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+    seated_students = conn.execute("SELECT COUNT(*) FROM students WHERE seat_row != -1").fetchone()[0]
+    total_rooms     = conn.execute("SELECT COUNT(*) FROM rooms").fetchone()[0]
+    total_capacity  = conn.execute("SELECT SUM(rows * cols) FROM rooms").fetchone()[0] or 0
+
+    # Branch-wise breakdown
+    branches = conn.execute(
+        "SELECT branch, COUNT(*) as count FROM students GROUP BY branch ORDER BY count DESC"
+    ).fetchall()
+
+    # Room-wise occupancy
+    rooms = conn.execute(
+        """SELECT r.room_no, r.rows, r.cols,
+           COUNT(s.id) as occupied
+           FROM rooms r
+           LEFT JOIN students s ON s.room_no = r.room_no AND s.seat_row != -1
+           GROUP BY r.room_no ORDER BY r.room_no"""
+    ).fetchall()
+
+    conn.close()
+
+    return jsonify({
+        "total_students" : total_students,
+        "seated_students": seated_students,
+        "pending"        : total_students - seated_students,
+        "total_rooms"    : total_rooms,
+        "total_capacity" : total_capacity,
+        "utilization"    : round((seated_students / total_capacity * 100), 1) if total_capacity else 0,
+        "branches"       : [{"branch": b["branch"], "count": b["count"]} for b in branches],
+        "rooms"          : [{"room_no": r["room_no"], "rows": r["rows"],
+                             "cols": r["cols"], "occupied": r["occupied"],
+                             "capacity": r["rows"] * r["cols"]} for r in rooms]
+    })
+
+
+# ============================================================
+#  ROUTE: Admit Card data  GET /admit_card/<roll_no>
+#  Returns all data needed to generate PDF admit card
+# ============================================================
+@app.route("/admit_card/<roll_no>")
+@login_required
+def admit_card(roll_no):
+    # Students can only get their own admit card
+    if session.get("roll_no") != roll_no:
+        return jsonify({"error": "You can only download your own admit card."}), 403
+
+    conn    = get_db_connection()
+    student = conn.execute("SELECT * FROM students WHERE roll_no = ?", (roll_no,)).fetchone()
+    exam    = conn.execute("SELECT * FROM exams ORDER BY id DESC LIMIT 1").fetchone()
+    conn.close()
+
+    if not student:
+        return jsonify({"error": "Student not found."}), 404
+    if student["seat_row"] == -1:
+        return jsonify({"error": "Seats not assigned yet."}), 400
+
+    return jsonify({
+        "roll_no"  : student["roll_no"],
+        "name"     : student["name"],
+        "branch"   : student["branch"],
+        "room_no"  : student["room_no"],
+        "row"      : student["seat_row"],
+        "col"      : student["seat_col"],
+        "seat_display": f"Row {student['seat_row']+1}, Seat {student['seat_col']+1}",
+        "exam_name": exam["exam_name"] if exam else "Examination",
+        "subject"  : exam["subject"]   if exam else "",
+        "exam_date": exam["exam_date"] if exam else ""
+    })
+
+
+# ============================================================
+#  ROUTE: Seating Chart  GET /seating_chart  (admin only)
+#  Returns full room-wise arrangement for printing
+# ============================================================
+@app.route("/seating_chart")
+@admin_required
+def seating_chart():
+    conn  = get_db_connection()
+    rooms = conn.execute("SELECT * FROM rooms ORDER BY room_no").fetchall()
+    exam  = conn.execute("SELECT * FROM exams ORDER BY id DESC LIMIT 1").fetchone()
+
+    chart = []
+    for room in rooms:
+        students = conn.execute(
+            """SELECT roll_no, name, branch, seat_row, seat_col
+               FROM students WHERE room_no = ? AND seat_row != -1
+               ORDER BY seat_row, seat_col""",
+            (room["room_no"],)
+        ).fetchall()
+
+        chart.append({
+            "room_no" : room["room_no"],
+            "rows"    : room["rows"],
+            "cols"    : room["cols"],
+            "students": [dict(s) for s in students]
+        })
+
+    conn.close()
+    return jsonify({
+        "exam_name": exam["exam_name"] if exam else "Examination",
+        "subject"  : exam["subject"]   if exam else "",
+        "exam_date": exam["exam_date"] if exam else "",
+        "rooms"    : chart
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)

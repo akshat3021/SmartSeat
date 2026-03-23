@@ -20,11 +20,8 @@ int STRICT_MODE = 0; // 0 = Normal (4 directions), 1 = Strict (8 directions + di
 vector<Student> students;
 vector<vector<string> > roomMap; // Stores which branch is in which seat
 
-// --- CHECKING FOR CONFLICTS ---
-// This function checks if it's safe to place a student of 'branch' at (r, c)
-// NORMAL MODE  (STRICT_MODE=0): checks 4 neighbours (Top, Bottom, Left, Right)
-// STRICT MODE  (STRICT_MODE=1): checks all 8 neighbours (4 sides + 4 diagonals)
 bool isSafe(int r, int c, string branch) {
+<<<<<<< HEAD
     // Check Top
     if (r > 0 && roomMap[r - 1][c] == branch) return false; 
     // Check Bottom
@@ -34,6 +31,8 @@ bool isSafe(int r, int c, string branch) {
     // Check Right
     if (c < COLS - 1 && roomMap[r][c + 1] == branch) return false;
 // =======
+=======
+>>>>>>> 5f90d8a (New Features added)
     // Always check 4 cardinal directions
     if (r > 0          && roomMap[r - 1][c] == branch) return false; // Top
     if (r < ROWS - 1   && roomMap[r + 1][c] == branch) return false; // Bottom
@@ -61,9 +60,6 @@ bool solve(int studentIdx) {
     string currentBranch = students[studentIdx].branch;
 
     // Try to find a seat for this student
-    // At starting [empty(0,0) , empty , ...., empty]
-    //             .   .   .   .   .   .    .    .
-    //             [empty , empty , ...., empty(R-1,C-1)]
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLS; j++) {
             
@@ -93,7 +89,6 @@ bool solve(int studentIdx) {
 
 // --- MAIN FUNCTION ---
 int main() {
-
     // 1. OPEN INPUT FILE (Sent by Python)
     ifstream inFile("input.txt");
     if (!inFile) {

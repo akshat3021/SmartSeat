@@ -8,154 +8,101 @@
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --bg:        #0a0e1a;
-            --surface:   #111827;
-            --surface2:  #1a2236;
-            --border:    rgba(255,255,255,0.08);
-            --green:     #22c55e;
-            --green-dim: rgba(34,197,94,0.12);
-            --red:       #ef4444;
-            --red-dim:   rgba(239,68,68,0.10);
-            --amber:     #f59e0b;
-            --amber-dim: rgba(245,158,11,0.12);
-            --accent:    #6366f1;
-            --muted:     rgba(255,255,255,0.35);
-            --text:      #f0f4ff;
+            --bg:#0a0e1a; --surface:#111827; --surface2:#1a2236;
+            --border:rgba(255,255,255,0.08); --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
+            --red:#ef4444; --red-dim:rgba(239,68,68,0.10); --amber:#f59e0b;
+            --amber-dim:rgba(245,158,11,0.12); --accent:#6366f1; --muted:rgba(255,255,255,0.35); --text:#f0f4ff;
         }
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            min-height: 100vh;
-            padding: 40px 16px 80px;
-            background-image:
-                linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-        .page { max-width: 720px; margin: 0 auto; }
+        body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; padding:40px 16px 80px;
+            background-image: linear-gradient(rgba(99,102,241,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(99,102,241,0.03) 1px,transparent 1px);
+            background-size:40px 40px; }
+        .page { max-width:720px; margin:0 auto; }
+        header { display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:1px solid var(--border); margin-bottom:48px; }
+        .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:20px; }
+        .logo span { color:var(--green); }
+        .admin-badge { background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc; font-size:11px; font-weight:500; letter-spacing:2px; text-transform:uppercase; padding:4px 12px; border-radius:20px; }
+        .page-title { margin-bottom:40px; }
+        .eyebrow { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--accent); margin-bottom:12px; font-weight:500; }
+        .page-title h1 { font-family:'Syne',sans-serif; font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:-1px; line-height:1.1; }
+        .page-title h1 em { font-style:normal; color:var(--green); }
+        .steps { display:flex; flex-direction:column; gap:16px; }
+        .step-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:border-color 0.2s; }
+        .step-card.active  { border-color:rgba(34,197,94,0.3); }
+        .step-card.success { border-color:rgba(34,197,94,0.5); }
+        .step-card.error   { border-color:rgba(239,68,68,0.4); }
+        .step-header { display:flex; align-items:center; gap:16px; padding:20px 24px; }
+        .step-num { width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:800; font-size:14px; color:var(--muted); flex-shrink:0; transition:background 0.3s,color 0.3s; }
+        .step-card.active  .step-num { background:var(--green-dim); color:var(--green); border-color:rgba(34,197,94,0.3); }
+        .step-card.success .step-num { background:var(--green-dim); color:var(--green); border-color:rgba(34,197,94,0.4); }
+        .step-card.error   .step-num { background:var(--red-dim); color:var(--red); border-color:rgba(239,68,68,0.3); }
+        .step-info h3 { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:2px; }
+        .step-info p  { font-size:13px; color:var(--muted); font-weight:300; }
+        .step-body { padding:0 24px 24px; border-top:1px solid var(--border); }
+        .mode-row { display:flex; gap:10px; margin-top:20px; }
+        .mode-card { flex:1; border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; background:var(--surface2); cursor:pointer; transition:border-color 0.2s,background 0.2s; }
+        .mode-card:hover { border-color:rgba(99,102,241,0.4); }
+        .mode-card.active-mode { border-color:var(--green); background:var(--green-dim); }
+        .field { margin-bottom:16px; }
+        .field label { display:block; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; font-weight:500; }
+        .field input[type="text"], .field input[type="date"], .field input[type="number"] { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:15px; outline:none; transition:border-color 0.2s; }
+        .field input:focus { border-color:rgba(99,102,241,0.5); }
+        .field input::placeholder { color:var(--muted); }
+        .room-config { display:flex; gap:16px; margin-top:20px; flex-wrap:wrap; }
+        .drop-zone { margin-top:20px; border:2px dashed var(--border); border-radius:12px; padding:30px 24px; text-align:center; cursor:pointer; transition:border-color 0.2s,background 0.2s; position:relative; }
+        .drop-zone:hover,.drop-zone.dragover { border-color:rgba(34,197,94,0.4); background:var(--green-dim); }
+        .drop-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+        .drop-zone p { font-size:14px; color:var(--muted); margin-bottom:4px; }
+        .drop-zone strong { color:var(--green); font-weight:500; }
+        .drop-zone .file-hint { font-size:11px; color:var(--muted); opacity:0.6; margin-top:6px; }
+        .selected-file { margin-top:10px; font-size:13px; color:var(--green); display:none; }
+        .format-hint { margin-top:14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+        .format-hint p { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+        .format-hint code { font-family:'Courier New',monospace; font-size:13px; color:var(--amber); line-height:1.8; }
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:13px 28px; border-radius:10px; font-family:'Syne',sans-serif; font-weight:700; font-size:14px; cursor:pointer; border:none; transition:transform 0.15s,opacity 0.15s; margin-top:16px; }
+        .btn:hover { opacity:0.88; transform:scale(0.98); }
+        .btn:active { transform:scale(0.95); }
+        .btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+        .btn-green  { background:var(--green); color:#0a0e1a; }
+        .btn-accent { background:var(--accent); color:#fff; }
+        .btn-ghost  { background:transparent; color:var(--muted); border:1px solid var(--border); }
+        .status { display:none; margin-top:14px; padding:14px 16px; border-radius:10px; font-size:13px; line-height:1.5; }
+        .status.success { background:var(--green-dim); border:1px solid rgba(34,197,94,0.25); color:#86efac; }
+        .status.error   { background:var(--red-dim); border:1px solid rgba(239,68,68,0.25); color:#fca5a5; }
+        .status.loading { background:var(--amber-dim); border:1px solid rgba(245,158,11,0.25); color:#fcd34d; }
+        .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.2); border-top-color:currentColor; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .table-wrap { margin-top:20px; overflow-x:auto; border-radius:10px; border:1px solid var(--border); }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        thead tr { background:var(--surface2); }
+        th { padding:10px 16px; text-align:left; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); font-weight:500; border-bottom:1px solid var(--border); }
+        td { padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.04); }
+        tr:last-child td { border-bottom:none; }
+        .pill { display:inline-block; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:500; }
+        .pill.assigned { background:var(--green-dim); color:var(--green); border:1px solid rgba(34,197,94,0.2); }
+        .pill.pending  { background:var(--amber-dim); color:var(--amber); border:1px solid rgba(245,158,11,0.2); }
+        .pill.room     { background:rgba(99,102,241,0.12); color:#a5b4fc; border:1px solid rgba(99,102,241,0.2); }
+        .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:13px; text-decoration:none; margin-bottom:32px; transition:color 0.2s; }
+        .back-link:hover { color:var(--text); }
+        .section-title { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; letter-spacing:-0.5px; margin-bottom:20px; }
+        .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
+        .stat-val { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:4px; }
+        .stat-lbl { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+        .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:13px; }
+        .bar-bg { flex:1; background:rgba(255,255,255,0.05); border-radius:4px; height:8px; overflow:hidden; }
+        .bar-fill { height:100%; border-radius:4px; transition:width 0.6s ease; }
 
-        header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding-bottom: 20px; border-bottom: 1px solid var(--border);
-            margin-bottom: 48px;
+        /* Print styles */
+        @media print {
+            body { background:white !important; color:black !important; padding:0; background-image:none !important; }
+            .no-print { display:none !important; }
+            .print-area { display:block !important; }
+            .print-room { page-break-after:always; padding:20px; }
+            .print-room h2 { font-size:18px; margin-bottom:12px; }
+            .print-table { width:100%; border-collapse:collapse; font-size:12px; }
+            .print-table th, .print-table td { border:1px solid #ccc; padding:6px 10px; text-align:left; }
+            .print-table th { background:#f0f0f0; }
         }
-        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; }
-        .logo span { color: var(--green); }
-        .admin-badge {
-            background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
-            color: #a5b4fc; font-size: 11px; font-weight: 500;
-            letter-spacing: 2px; text-transform: uppercase;
-            padding: 4px 12px; border-radius: 20px;
-        }
-        .page-title { margin-bottom: 40px; }
-        .eyebrow {
-            font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
-            color: var(--accent); margin-bottom: 12px; font-weight: 500;
-        }
-        .page-title h1 {
-            font-family: 'Syne', sans-serif;
-            font-size: clamp(28px, 5vw, 42px);
-            font-weight: 800; letter-spacing: -1px; line-height: 1.1;
-        }
-        .page-title h1 em { font-style: normal; color: var(--green); }
-        .steps { display: flex; flex-direction: column; gap: 16px; }
-        .step-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 16px; overflow: hidden; transition: border-color 0.2s;
-        }
-        .step-card.active  { border-color: rgba(34,197,94,0.3); }
-        .step-card.success { border-color: rgba(34,197,94,0.5); }
-        .step-card.error   { border-color: rgba(239,68,68,0.4); }
-        .step-header {
-            display: flex; align-items: center; gap: 16px; padding: 20px 24px;
-        }
-        .step-num {
-            width: 32px; height: 32px; border-radius: 8px;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px;
-            color: var(--muted); flex-shrink: 0; transition: background 0.3s, color 0.3s;
-        }
-        .step-card.active  .step-num { background: var(--green-dim); color: var(--green); border-color: rgba(34,197,94,0.3); }
-        .step-card.success .step-num { background: var(--green-dim); color: var(--green); border-color: rgba(34,197,94,0.4); }
-        .step-card.error   .step-num { background: var(--red-dim);   color: var(--red);   border-color: rgba(239,68,68,0.3); }
-        .step-info h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 2px; }
-        .step-info p  { font-size: 13px; color: var(--muted); font-weight: 300; }
-        .step-body { padding: 0 24px 24px; border-top: 1px solid var(--border); }
-
-        /* Mode cards */
-        .mode-row { display: flex; gap: 10px; margin-top: 20px; }
-        .mode-card {
-            flex: 1; border: 1px solid var(--border); border-radius: 12px;
-            padding: 16px; text-align: center; background: var(--surface2);
-            cursor: pointer; transition: border-color 0.2s, background 0.2s;
-        }
-        .mode-card:hover     { border-color: rgba(99,102,241,0.4); }
-        .mode-card.active-mode { border-color: var(--green); background: var(--green-dim); }
-
-        /* Drop zone */
-        .drop-zone {
-            margin-top: 20px; border: 2px dashed var(--border);
-            border-radius: 12px; padding: 30px 24px; text-align: center;
-            cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative;
-        }
-        .drop-zone:hover, .drop-zone.dragover { border-color: rgba(34,197,94,0.4); background: var(--green-dim); }
-        .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-        .drop-zone p   { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
-        .drop-zone strong { color: var(--green); font-weight: 500; }
-        .drop-zone .file-hint { font-size: 11px; color: var(--muted); opacity: 0.6; margin-top: 6px; }
-        .selected-file { margin-top: 10px; font-size: 13px; color: var(--green); display: none; }
-
-        /* Format hint */
-        .format-hint {
-            margin-top: 14px; background: var(--surface2);
-            border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
-        }
-        .format-hint p    { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-        .format-hint code { font-family: 'Courier New', monospace; font-size: 13px; color: var(--amber); line-height: 1.8; }
-
-        /* Buttons */
-        .btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 13px 28px; border-radius: 10px;
-            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
-            cursor: pointer; border: none; transition: transform 0.15s, opacity 0.15s; margin-top: 16px;
-        }
-        .btn:hover   { opacity: 0.88; transform: scale(0.98); }
-        .btn:active  { transform: scale(0.95); }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        .btn-green  { background: var(--green);  color: #0a0e1a; }
-        .btn-accent { background: var(--accent);  color: #fff; }
-        .btn-ghost  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-
-        /* Status */
-        .status { display: none; margin-top: 14px; padding: 14px 16px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
-        .status.success { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
-        .status.error   { background: var(--red-dim);   border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
-        .status.loading { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.25); color: #fcd34d; }
-        .spinner {
-            display: inline-block; width: 14px; height: 14px;
-            border: 2px solid rgba(255,255,255,0.2); border-top-color: currentColor;
-            border-radius: 50%; animation: spin 0.7s linear infinite;
-            vertical-align: middle; margin-right: 6px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Table */
-        .table-wrap { margin-top: 20px; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        thead tr { background: var(--surface2); }
-        th { padding: 10px 16px; text-align: left; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
-        td { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        tr:last-child td { border-bottom: none; }
-        .pill { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-        .pill.assigned { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
-        .pill.pending  { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
-        .pill.room     { background: rgba(99,102,241,0.12); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.2); }
-
-        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; text-decoration: none; margin-bottom: 32px; transition: color 0.2s; }
-        .back-link:hover { color: var(--text); }
+        .print-area { display:none; }
     </style>
 </head>
 <body>
@@ -163,17 +110,49 @@
 
     <header>
         <div class="logo">💺 <span>Smart</span>Seat</div>
-        <div style="display:flex;align-items:center;gap:12px;"><div class="admin-badge">Admin Panel</div><a href="/logout" style="font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:5px 12px;border-radius:8px;">Logout</a></div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div class="admin-badge">Admin Panel</div>
+            <a href="/logout" style="font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:5px 12px;border-radius:8px;">Logout</a>
+        </div>
     </header>
 
-    <a class="back-link" href="/">← Back to student portal</a>
+    <a class="back-link no-print" href="/">← Back to student portal</a>
 
-    <div class="page-title">
+    <div class="page-title no-print">
         <p class="eyebrow">Control Centre</p>
         <h1>Manage <em>Exam</em> Seating</h1>
     </div>
 
-    <div class="steps">
+    <div class="steps no-print">
+
+        <!-- ══ EXAM INFO ══ -->
+        <div class="step-card active" id="cardExam">
+            <div class="step-header">
+                <div class="step-num" style="background:var(--green-dim);color:var(--green);border-color:rgba(34,197,94,0.3);">★</div>
+                <div class="step-info">
+                    <h3>Set Exam Details</h3>
+                    <p>Exam name and date will appear on every student's admit card</p>
+                </div>
+            </div>
+            <div class="step-body">
+                <div class="room-config">
+                    <div class="field" style="flex:2">
+                        <label>Exam Name</label>
+                        <input type="text" id="examName" placeholder="e.g. Design and Analysis of Algorithms">
+                    </div>
+                    <div class="field" style="flex:1">
+                        <label>Date</label>
+                        <input type="date" id="examDate">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Subject Code (optional)</label>
+                    <input type="text" id="examSubject" placeholder="e.g. CS-401">
+                </div>
+                <button class="btn btn-green" onclick="saveExamInfo()" id="btnExam">Save Exam Info</button>
+                <div class="status" id="statusExam"></div>
+            </div>
+        </div>
 
         <!-- ══ STEP 1: Mode ══ -->
         <div class="step-card active" id="card1">
@@ -206,7 +185,7 @@
             </div>
         </div>
 
-        <!-- ══ STEP 2: Upload Students CSV ══ -->
+        <!-- ══ STEP 2: Upload Students ══ -->
         <div class="step-card" id="card2">
             <div class="step-header">
                 <div class="step-num">2</div>
@@ -219,20 +198,20 @@
                 <div class="drop-zone" id="dropStudents">
                     <input type="file" id="studentFile" accept=".csv,.txt" onchange="fileSelected(this,'studentFileName')">
                     <div style="font-size:28px;margin-bottom:8px;">👥</div>
-                    <p><strong>Click to choose</strong> or drag & drop</p>
+                    <p><strong>Click to choose</strong> or drag and drop</p>
                     <p class="file-hint">students.csv</p>
                 </div>
                 <p class="selected-file" id="studentFileName"></p>
                 <div class="format-hint">
                     <p>Expected format</p>
-                    <code>101, Amit Kumar, CSE<br>102, Rahul Singh, ECE<br>103, Priya Sharma, CSE</code>
+                    <code>101, Akshat Aswal, CSE<br>102, Yasharth Dhanai, CSE<br>103, Mohit Mamgain, CSE</code>
                 </div>
                 <button class="btn btn-green" onclick="uploadStudents()" id="btnUploadStudents">Upload Students</button>
                 <div class="status" id="statusStudents"></div>
             </div>
         </div>
 
-        <!-- ══ STEP 3: Upload Rooms CSV (NEW) ══ -->
+        <!-- ══ STEP 3: Upload Rooms ══ -->
         <div class="step-card" id="card3">
             <div class="step-header">
                 <div class="step-num">3</div>
@@ -245,12 +224,12 @@
                 <div class="drop-zone" id="dropRooms">
                     <input type="file" id="roomFile" accept=".csv,.txt" onchange="fileSelected(this,'roomFileName')">
                     <div style="font-size:28px;margin-bottom:8px;">🏫</div>
-                    <p><strong>Click to choose</strong> or drag & drop</p>
+                    <p><strong>Click to choose</strong> or drag and drop</p>
                     <p class="file-hint">rooms.csv</p>
                 </div>
                 <p class="selected-file" id="roomFileName"></p>
                 <div class="format-hint">
-                    <p>Expected format &nbsp;(room_no, rows, cols)</p>
+                    <p>Expected format (room_no, rows, cols)</p>
                     <code>301, 5, 6<br>302, 4, 8<br>303, 6, 6</code>
                 </div>
                 <button class="btn btn-green" onclick="uploadRooms()" id="btnUploadRooms">Upload Rooms</button>
@@ -287,23 +266,51 @@
                 <div class="status" id="statusLoad"></div>
                 <div class="table-wrap" id="tableWrap" style="display:none">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Roll No</th>
-                                <th>Name</th>
-                                <th>Branch</th>
-                                <th>Room</th>
-                                <th>Seat</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Roll No</th><th>Name</th><th>Branch</th><th>Room</th><th>Seat</th></tr></thead>
                         <tbody id="studentTableBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
+    </div><!-- /steps -->
+
+    <!-- ══ DASHBOARD ══ -->
+    <div style="margin-top:48px;" class="no-print">
+        <p class="eyebrow">Overview</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+            <h2 class="section-title" style="margin-bottom:0;">Dashboard</h2>
+            <button class="btn btn-ghost" onclick="loadDashboard()" style="margin-top:0;">Refresh Stats</button>
+        </div>
+        <div id="statCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="stat-card">
+                <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">Branch breakdown</p>
+                <div id="branchBars"></div>
+            </div>
+            <div class="stat-card">
+                <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">Room occupancy</p>
+                <div id="roomBars"></div>
+            </div>
+        </div>
     </div>
-</div>
+
+    <!-- ══ PRINT SEATING CHART ══ -->
+    <div style="margin-top:48px;margin-bottom:48px;" class="no-print">
+        <p class="eyebrow">Seating Chart</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+            <h2 class="section-title" style="margin-bottom:0;">Print Room-wise Arrangement</h2>
+            <button class="btn btn-accent" onclick="printChart()" style="margin-top:0;">🖨️ Print Chart</button>
+        </div>
+        <div id="chartPreview" class="stat-card">
+            <p style="color:var(--muted);font-size:14px;text-align:center;">Run the solver first, then click Print Chart.</p>
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+<!-- ══ PRINT AREA (hidden on screen, visible when printing) ══ -->
+<div class="print-area" id="printArea"></div>
 
 <script>
     // ── MODE TOGGLE ──
@@ -313,14 +320,12 @@
         document.getElementById('cardStrict').classList.toggle('active-mode', val === '1');
     }
 
-    // ── FILE SELECTED ──
     function fileSelected(input, labelId) {
         const name = input.files[0]?.name;
         const el   = document.getElementById(labelId);
         if (name) { el.textContent = '✓ ' + name; el.style.display = 'block'; }
     }
 
-    // ── DRAG & DROP ──
     ['dropStudents','dropRooms'].forEach(id => {
         const zone = document.getElementById(id);
         zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
@@ -335,140 +340,187 @@
         });
     });
 
-    // ── STATUS HELPER ──
     function showStatus(id, type, html) {
         const el = document.getElementById(id);
-        el.className = 'status ' + type;
-        el.innerHTML = html;
-        el.style.display = 'block';
+        el.className = 'status ' + type; el.innerHTML = html; el.style.display = 'block';
     }
 
-    // ── STEP 2: UPLOAD STUDENTS → POST /upload_students ──
+    // ── SAVE EXAM INFO ──
+    async function saveExamInfo() {
+        const name    = document.getElementById('examName').value.trim();
+        const date    = document.getElementById('examDate').value;
+        const subject = document.getElementById('examSubject').value.trim();
+        const btn     = document.getElementById('btnExam');
+        if (!name || !date) { showStatus('statusExam','error','✗ Exam name and date are required.'); return; }
+        btn.disabled = true; btn.textContent = 'Saving...';
+        showStatus('statusExam','loading','<span class="spinner"></span> Saving exam info...');
+        try {
+            const res  = await fetch('/set_exam', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ exam_name:name, subject, exam_date:date }) });
+            const data = await res.json();
+            if (!res.ok) { showStatus('statusExam','error','✗ ' + data.error); }
+            else { showStatus('statusExam','success','✓ ' + data.message); document.getElementById('cardExam').className = 'step-card success'; }
+        } catch(e) { showStatus('statusExam','error','✗ Network error.'); }
+        finally { btn.disabled = false; btn.textContent = 'Save Exam Info'; }
+    }
+
+    // ── UPLOAD STUDENTS ──
     async function uploadStudents() {
         const fileInput = document.getElementById('studentFile');
-        const btn       = document.getElementById('btnUploadStudents');
+        const btn = document.getElementById('btnUploadStudents');
         if (!fileInput.files[0]) { showStatus('statusStudents','error','✗ Please select a CSV file first.'); return; }
-
         btn.disabled = true; btn.textContent = 'Uploading...';
         showStatus('statusStudents','loading','<span class="spinner"></span> Uploading students...');
-
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
-
         try {
-            const res  = await fetch('/upload_students', { method: 'POST', body: formData });
+            const res  = await fetch('/upload_students', { method:'POST', body: formData });
             const data = await res.json();
-            if (!res.ok) {
-                showStatus('statusStudents','error','✗ ' + data.error);
-                document.getElementById('card2').className = 'step-card error';
-            } else {
-                const warns = data.errors?.length ? '<br><small>' + data.errors.join(', ') + '</small>' : '';
-                showStatus('statusStudents','success','✓ ' + data.message + warns);
-                document.getElementById('card2').className = 'step-card success';
-                document.getElementById('card3').className = 'step-card active';
-            }
-        } catch(e) { showStatus('statusStudents','error','✗ Network error. Is Flask running?'); }
+            if (!res.ok) { showStatus('statusStudents','error','✗ ' + data.error); document.getElementById('card2').className = 'step-card error'; }
+            else { showStatus('statusStudents','success','✓ ' + data.message); document.getElementById('card2').className = 'step-card success'; document.getElementById('card3').className = 'step-card active'; }
+        } catch(e) { showStatus('statusStudents','error','✗ Network error.'); }
         finally { btn.disabled = false; btn.textContent = 'Upload Students'; }
     }
 
-    // ── STEP 3: UPLOAD ROOMS → POST /upload_rooms ──
+    // ── UPLOAD ROOMS ──
     async function uploadRooms() {
         const fileInput = document.getElementById('roomFile');
-        const btn       = document.getElementById('btnUploadRooms');
+        const btn = document.getElementById('btnUploadRooms');
         if (!fileInput.files[0]) { showStatus('statusRooms','error','✗ Please select a CSV file first.'); return; }
-
         btn.disabled = true; btn.textContent = 'Uploading...';
         showStatus('statusRooms','loading','<span class="spinner"></span> Uploading rooms...');
-
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
-
         try {
-            const res  = await fetch('/upload_rooms', { method: 'POST', body: formData });
+            const res  = await fetch('/upload_rooms', { method:'POST', body: formData });
             const data = await res.json();
-            if (!res.ok) {
-                showStatus('statusRooms','error','✗ ' + data.error);
-                document.getElementById('card3').className = 'step-card error';
-            } else {
-                const warns = data.errors?.length ? '<br><small>' + data.errors.join(', ') + '</small>' : '';
-                showStatus('statusRooms','success','✓ ' + data.message + warns);
-                document.getElementById('card3').className = 'step-card success';
-                document.getElementById('card4').className = 'step-card active';
-            }
-        } catch(e) { showStatus('statusRooms','error','✗ Network error. Is Flask running?'); }
+            if (!res.ok) { showStatus('statusRooms','error','✗ ' + data.error); document.getElementById('card3').className = 'step-card error'; }
+            else { showStatus('statusRooms','success','✓ ' + data.message); document.getElementById('card3').className = 'step-card success'; document.getElementById('card4').className = 'step-card active'; }
+        } catch(e) { showStatus('statusRooms','error','✗ Network error.'); }
         finally { btn.disabled = false; btn.textContent = 'Upload Rooms'; }
     }
 
-    // ── STEP 4: RUN SOLVER → POST /run ──
+    // ── RUN SOLVER ──
     async function runSolver() {
-        const btn         = document.getElementById('btnSolver');
+        const btn = document.getElementById('btnSolver');
         const strict_mode = parseInt(document.querySelector('input[name="mode"]:checked').value);
         const modeLabel   = strict_mode === 1 ? 'Strict Mode' : 'Normal Mode';
-
-        btn.disabled = true; btn.textContent = '⚡ Running...';
-        showStatus('statusSolver','loading','<span class="spinner"></span> Running C++ solver across all rooms (' + modeLabel + ')...');
-
+        btn.disabled = true; btn.textContent = 'Running...';
+        showStatus('statusSolver','loading','<span class="spinner"></span> Running C++ solver (' + modeLabel + ')...');
         try {
-            const res  = await fetch('/run', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ strict_mode })
-            });
+            const res  = await fetch('/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ strict_mode }) });
             const data = await res.json();
-            if (!res.ok) {
-                showStatus('statusSolver','error','✗ ' + data.error);
-                document.getElementById('card4').className = 'step-card error';
-            } else {
-                showStatus('statusSolver','success',
-                    '✓ ' + data.message + ' &nbsp;|&nbsp; ' + modeLabel +
-                    ' &nbsp;|&nbsp; ' + data.rooms_done + ' rooms processed');
+            if (!res.ok) { showStatus('statusSolver','error','✗ ' + data.error); document.getElementById('card4').className = 'step-card error'; }
+            else {
+                showStatus('statusSolver','success','✓ ' + data.message + ' | ' + modeLabel + ' | ' + data.rooms_done + ' rooms');
                 document.getElementById('card4').className = 'step-card success';
                 document.getElementById('card5').className = 'step-card active';
-                loadStudents();
+                loadStudents(); loadDashboard();
             }
-        } catch(e) { showStatus('statusSolver','error','✗ Network error. Is Flask running?'); }
+        } catch(e) { showStatus('statusSolver','error','✗ Network error.'); }
         finally { btn.disabled = false; btn.textContent = '⚡ Run SmartSeat Algorithm'; }
     }
 
-    // ── STEP 5: LOAD STUDENTS → GET /students ──
+    // ── LOAD STUDENTS ──
     async function loadStudents() {
         const btn = document.getElementById('btnLoad');
         btn.disabled = true;
         showStatus('statusLoad','loading','<span class="spinner"></span> Loading...');
-
         try {
-            const res      = await fetch('/students');
-            const students = await res.json();
+            const res = await fetch('/students'); const students = await res.json();
             document.getElementById('statusLoad').style.display = 'none';
-
-            if (!students.length) {
-                showStatus('statusLoad','error','✗ No students in database yet.');
-                return;
-            }
-
+            if (!students.length) { showStatus('statusLoad','error','✗ No students yet.'); return; }
             const tbody = document.getElementById('studentTableBody');
             tbody.innerHTML = students.map(s => {
                 const hasRoom = s.room_no && s.room_no !== '';
                 const hasSeat = s.seat_row !== -1;
-                const roomCell = hasRoom
-                    ? `<span class="pill room">Room ${s.room_no}</span>`
-                    : '<span style="color:var(--muted)">—</span>';
-                const seatCell = hasSeat
-                    ? `<span class="pill assigned">Row ${s.seat_row+1}, Seat ${s.seat_col+1}</span>`
-                    : `<span class="pill pending">Pending</span>`;
-                return `<tr>
-                    <td>${s.roll_no}</td>
-                    <td>${s.name}</td>
-                    <td>${s.branch}</td>
-                    <td>${roomCell}</td>
-                    <td>${seatCell}</td>
-                </tr>`;
+                return '<tr><td>' + s.roll_no + '</td><td>' + s.name + '</td><td>' + s.branch + '</td><td>' +
+                    (hasRoom ? '<span class="pill room">Room ' + s.room_no + '</span>' : '<span style="color:var(--muted)">—</span>') + '</td><td>' +
+                    (hasSeat ? '<span class="pill assigned">Row ' + (s.seat_row+1) + ', Seat ' + (s.seat_col+1) + '</span>' : '<span class="pill pending">Pending</span>') +
+                    '</td></tr>';
             }).join('');
-
             document.getElementById('tableWrap').style.display = 'block';
         } catch(e) { showStatus('statusLoad','error','✗ Could not load students.'); }
         finally { btn.disabled = false; btn.textContent = 'Refresh List'; }
     }
+
+    // ── DASHBOARD ──
+    async function loadDashboard() {
+        try {
+            const res  = await fetch('/stats');
+            const data = await res.json();
+
+            // Stat cards
+            const colors = ['var(--green)','#a5b4fc','var(--amber)','#67e8f9'];
+            const stats  = [
+                { val: data.total_students,  lbl: 'Total students' },
+                { val: data.seated_students, lbl: 'Seats assigned' },
+                { val: data.total_rooms,     lbl: 'Exam rooms' },
+                { val: data.utilization + '%', lbl: 'Room utilization' }
+            ];
+            document.getElementById('statCards').innerHTML = stats.map((s,i) =>
+                '<div class="stat-card"><div class="stat-val" style="color:' + colors[i] + '">' + s.val + '</div><div class="stat-lbl">' + s.lbl + '</div></div>'
+            ).join('');
+
+            // Branch bars
+            const maxB = Math.max(...data.branches.map(b => b.count));
+            document.getElementById('branchBars').innerHTML = data.branches.map(b =>
+                '<div class="bar-row"><span style="width:40px;color:var(--muted)">' + b.branch + '</span>' +
+                '<div class="bar-bg"><div class="bar-fill" style="width:' + Math.round(b.count/maxB*100) + '%;background:var(--green)"></div></div>' +
+                '<span style="color:var(--muted);min-width:30px;text-align:right">' + b.count + '</span></div>'
+            ).join('');
+
+            // Room bars
+            document.getElementById('roomBars').innerHTML = data.rooms.map(r =>
+                '<div class="bar-row"><span style="width:36px;color:var(--muted);font-size:12px">' + r.room_no + '</span>' +
+                '<div class="bar-bg"><div class="bar-fill" style="width:' + Math.round(r.occupied/r.capacity*100) + '%;background:#a5b4fc"></div></div>' +
+                '<span style="color:var(--muted);min-width:60px;text-align:right;font-size:12px">' + r.occupied + '/' + r.capacity + '</span></div>'
+            ).join('');
+
+        } catch(e) { console.error('Dashboard error', e); }
+    }
+
+    // ── PRINT SEATING CHART ──
+    async function printChart() {
+        try {
+            const res  = await fetch('/seating_chart');
+            const data = await res.json();
+
+            // Build print-friendly HTML
+            let html = '<div style="font-family:Arial,sans-serif;padding:20px;">';
+            html += '<h1 style="font-size:20px;margin-bottom:4px;">' + data.exam_name + '</h1>';
+            if (data.subject) html += '<p style="color:#666;margin-bottom:2px;">Subject: ' + data.subject + '</p>';
+            if (data.exam_date) html += '<p style="color:#666;margin-bottom:20px;">Date: ' + data.exam_date + '</p>';
+
+            data.rooms.forEach(room => {
+                html += '<div class="print-room">';
+                html += '<h2 style="font-size:16px;margin-bottom:8px;border-bottom:2px solid #000;padding-bottom:4px;">Room ' + room.room_no + ' (' + room.rows + ' x ' + room.cols + ' — ' + room.students.length + ' students)</h2>';
+                html += '<table class="print-table" style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:24px;">';
+                html += '<thead><tr style="background:#f0f0f0;"><th style="border:1px solid #ccc;padding:6px 10px;">Roll No</th><th style="border:1px solid #ccc;padding:6px 10px;">Name</th><th style="border:1px solid #ccc;padding:6px 10px;">Branch</th><th style="border:1px solid #ccc;padding:6px 10px;">Row</th><th style="border:1px solid #ccc;padding:6px 10px;">Seat</th></tr></thead><tbody>';
+                room.students.forEach(s => {
+                    html += '<tr><td style="border:1px solid #ccc;padding:6px 10px;">' + s.roll_no + '</td>' +
+                        '<td style="border:1px solid #ccc;padding:6px 10px;">' + s.name + '</td>' +
+                        '<td style="border:1px solid #ccc;padding:6px 10px;">' + s.branch + '</td>' +
+                        '<td style="border:1px solid #ccc;padding:6px 10px;">' + (s.seat_row+1) + '</td>' +
+                        '<td style="border:1px solid #ccc;padding:6px 10px;">' + (s.seat_col+1) + '</td></tr>';
+                });
+                html += '</tbody></table></div>';
+            });
+            html += '</div>';
+
+            // Show preview
+            document.getElementById('chartPreview').innerHTML = html;
+
+            // Open print dialog
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>Seating Chart</title></head><body>' + html + '</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+
+        } catch(e) { document.getElementById('chartPreview').innerHTML = '<p style="color:var(--red);padding:20px;text-align:center">Could not load seating chart. Run the solver first.</p>'; }
+    }
+
+    // Auto-load dashboard on page open
+    loadDashboard();
 </script>
 </body>
 </html>
