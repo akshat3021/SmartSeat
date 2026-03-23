@@ -1,5 +1,3 @@
-
-
 function findSeat() {
     const roll = document.getElementById('rollInput').value;
     

@@ -19,7 +19,6 @@ INPUT_FILE  = "input.txt"
 OUTPUT_FILE = "output.txt"
 SOLVER_PATH = "solver.exe"
 
-
 # ============================================================
 #  HELPER FUNCTIONS
 # ============================================================

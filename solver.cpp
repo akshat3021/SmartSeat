@@ -25,7 +25,6 @@ vector<vector<string> > roomMap; // Stores which branch is in which seat
 // NORMAL MODE  (STRICT_MODE=0): checks 4 neighbours (Top, Bottom, Left, Right)
 // STRICT MODE  (STRICT_MODE=1): checks all 8 neighbours (4 sides + 4 diagonals)
 bool isSafe(int r, int c, string branch) {
-<<<<<<< HEAD
     // Check Top
     if (r > 0 && roomMap[r - 1][c] == branch) return false; 
     // Check Bottom
@@ -34,13 +33,12 @@ bool isSafe(int r, int c, string branch) {
     if (c > 0 && roomMap[r][c - 1] == branch) return false;
     // Check Right
     if (c < COLS - 1 && roomMap[r][c + 1] == branch) return false;
-=======
+// =======
     // Always check 4 cardinal directions
     if (r > 0          && roomMap[r - 1][c] == branch) return false; // Top
     if (r < ROWS - 1   && roomMap[r + 1][c] == branch) return false; // Bottom
     if (c > 0          && roomMap[r][c - 1] == branch) return false; // Left
     if (c < COLS - 1   && roomMap[r][c + 1] == branch) return false; // Right
->>>>>>> 9137a56 (Login / Authentication System Implimented)
 
     // Only check diagonals in STRICT MODE
     if (STRICT_MODE == 1) {
