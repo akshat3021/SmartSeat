@@ -203,8 +203,8 @@
                 </div>
                 <p class="selected-file" id="studentFileName"></p>
                 <div class="format-hint">
-                    <p>Expected format</p>
-                    <code>101, Akshat Aswal, CSE<br>102, Yasharth Dhanai, CSE<br>103, Mohit Mamgain, CSE</code>
+                    <p>Expected format (roll_no, name, father_name, enrollment_no, program, semester, branch, sec)</p>
+                    <code>101, Akshat Aswal, Anil Aswal, GE2201, B.Tech, 4, CSE, A2<br>102, Yasharth Dhanai, Sanjay Dhanai, GE2202, B.Tech, 4, CSE, A2</code>
                 </div>
                 <button class="btn btn-green" onclick="uploadStudents()" id="btnUploadStudents">Upload Students</button>
                 <div class="status" id="statusStudents"></div>
@@ -478,46 +478,46 @@
 
         } catch(e) { console.error('Dashboard error', e); }
     }
+// ── PRINT SEATING CHART ──
+async function printChart() {
+    try {
+        const res  = await fetch('/seating_chart');
+        const data = await res.json();
 
-    // ── PRINT SEATING CHART ──
-    async function printChart() {
-        try {
-            const res  = await fetch('/seating_chart');
-            const data = await res.json();
+        // Build print-friendly HTML
+        let html = '<div style="font-family:Arial,sans-serif;padding:20px;">';
+        html += '<h1 style="font-size:20px;margin-bottom:4px;">' + data.exam_name + '</h1>';
+        if (data.subject) html += '<p style="color:#666;margin-bottom:2px;">Subject: ' + data.subject + '</p>';
+        if (data.exam_date) html += '<p style="color:#666;margin-bottom:20px;">Date: ' + data.exam_date + '</p>';
 
-            // Build print-friendly HTML
-            let html = '<div style="font-family:Arial,sans-serif;padding:20px;">';
-            html += '<h1 style="font-size:20px;margin-bottom:4px;">' + data.exam_name + '</h1>';
-            if (data.subject) html += '<p style="color:#666;margin-bottom:2px;">Subject: ' + data.subject + '</p>';
-            if (data.exam_date) html += '<p style="color:#666;margin-bottom:20px;">Date: ' + data.exam_date + '</p>';
-
-            data.rooms.forEach(room => {
-                html += '<div class="print-room">';
-                html += '<h2 style="font-size:16px;margin-bottom:8px;border-bottom:2px solid #000;padding-bottom:4px;">Room ' + room.room_no + ' (' + room.rows + ' x ' + room.cols + ' — ' + room.students.length + ' students)</h2>';
-                html += '<table class="print-table" style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:24px;">';
-                html += '<thead><tr style="background:#f0f0f0;"><th style="border:1px solid #ccc;padding:6px 10px;">Roll No</th><th style="border:1px solid #ccc;padding:6px 10px;">Name</th><th style="border:1px solid #ccc;padding:6px 10px;">Branch</th><th style="border:1px solid #ccc;padding:6px 10px;">Row</th><th style="border:1px solid #ccc;padding:6px 10px;">Seat</th></tr></thead><tbody>';
-                room.students.forEach(s => {
-                    html += '<tr><td style="border:1px solid #ccc;padding:6px 10px;">' + s.roll_no + '</td>' +
-                        '<td style="border:1px solid #ccc;padding:6px 10px;">' + s.name + '</td>' +
-                        '<td style="border:1px solid #ccc;padding:6px 10px;">' + s.branch + '</td>' +
-                        '<td style="border:1px solid #ccc;padding:6px 10px;">' + (s.seat_row+1) + '</td>' +
-                        '<td style="border:1px solid #ccc;padding:6px 10px;">' + (s.seat_col+1) + '</td></tr>';
-                });
-                html += '</tbody></table></div>';
+        data.rooms.forEach(room => {
+            html += '<div class="print-room">';
+            html += '<h2 style="font-size:16px;margin-bottom:8px;border-bottom:2px solid #000;padding-bottom:4px;">Room ' + room.room_no + ' (' + room.rows + ' x ' + room.cols + ' — ' + room.students.length + ' students)</h2>';
+            html += '<table class="print-table" style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:24px;">';
+            html += '<thead><tr style="background:#f0f0f0;"><th style="border:1px solid #ccc;padding:6px 10px;">Roll No</th><th style="border:1px solid #ccc;padding:6px 10px;">Name</th><th style="border:1px solid #ccc;padding:6px 10px;">Branch</th><th style="border:1px solid #ccc;padding:6px 10px;">Row</th><th style="border:1px solid #ccc;padding:6px 10px;">Seat</th></tr></thead><tbody>';
+            room.students.forEach(s => {
+                html += '<tr><td style="border:1px solid #ccc;padding:6px 10px;">' + s.roll_no + '</td>' +
+                    '<td style="border:1px solid #ccc;padding:6px 10px;">' + s.name + '</td>' +
+                    '<td style="border:1px solid #ccc;padding:6px 10px;">' + s.branch + '</td>' +
+                    '<td style="border:1px solid #ccc;padding:6px 10px;">' + (s.seat_row+1) + '</td>' +
+                    '<td style="border:1px solid #ccc;padding:6px 10px;">' + (s.seat_col+1) + '</td></tr>';
             });
-            html += '</div>';
+            html += '</tbody></table></div>';
+        });
+        html += '</div>';
 
-            // Show preview
-            document.getElementById('chartPreview').innerHTML = html;
+        // Show preview in the admin panel card
+        document.getElementById('chartPreview').innerHTML = html;
 
-            // Open print dialog
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write('<html><head><title>Seating Chart</title></head><body>' + html + '</body></html>');
-            printWindow.document.close();
-            printWindow.print();
+        // INJECT into the hidden print area and call the native print dialog
+        document.getElementById('printArea').innerHTML = html;
+        window.print();
 
-        } catch(e) { document.getElementById('chartPreview').innerHTML = '<p style="color:var(--red);padding:20px;text-align:center">Could not load seating chart. Run the solver first.</p>'; }
+    } catch(e) { 
+        console.error("Print Error:", e); // This logs the real error to your console just in case
+        document.getElementById('chartPreview').innerHTML = '<p style="color:var(--red);padding:20px;text-align:center">Could not load seating chart. Check the console for details.</p>'; 
     }
+}
 
     // Auto-load dashboard on page open
     loadDashboard();

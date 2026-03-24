@@ -21,7 +21,6 @@ vector<Student> students;
 vector<vector<string> > roomMap; // Stores which branch is in which seat
 
 bool isSafe(int r, int c, string branch) {
-<<<<<<< HEAD
     // Check Top
     if (r > 0 && roomMap[r - 1][c] == branch) return false; 
     // Check Bottom
@@ -30,9 +29,7 @@ bool isSafe(int r, int c, string branch) {
     if (c > 0 && roomMap[r][c - 1] == branch) return false;
     // Check Right
     if (c < COLS - 1 && roomMap[r][c + 1] == branch) return false;
-// =======
-=======
->>>>>>> 5f90d8a (New Features added)
+
     // Always check 4 cardinal directions
     if (r > 0          && roomMap[r - 1][c] == branch) return false; // Top
     if (r < ROWS - 1   && roomMap[r + 1][c] == branch) return false; // Bottom

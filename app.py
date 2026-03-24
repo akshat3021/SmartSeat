@@ -274,15 +274,21 @@ def upload_students():
     for i, line in enumerate(lines):
         line  = line.strip()
         if not line: continue
-        parts = line.split(",")
-        if len(parts) != 3:
-            errors.append(f"Row {i+1} skipped — expected roll_no,name,branch"); continue
-        roll_no = parts[0].strip()
-        name    = parts[1].strip()
-        branch  = parts[2].strip().upper()
+        parts = [p.strip() for p in line.split(",")]
+        
+        # We now expect 8 columns in the CSV!
+        if len(parts) != 8:
+            errors.append(f"Row {i+1} skipped — expected 8 columns: roll_no, name, father_name, enrollment_no, program, semester, branch, section"); continue
+        
+        roll_no, name, father_name, enrollment_no, program, semester, branch, section = parts
+        branch = branch.upper()
+        
         try:
-            cursor.execute("INSERT INTO students (roll_no, name, branch) VALUES (?, ?, ?)",
-                           (roll_no, name, branch))
+            cursor.execute("""
+                INSERT INTO students (roll_no, name, father_name, enrollment_no, program, semester, branch, section) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (roll_no, name, father_name, enrollment_no, program, semester, branch, section)
+            )
             inserted += 1
         except sqlite3.IntegrityError:
             errors.append(f"Row {i+1}: roll_no '{roll_no}' duplicate, skipped.")
@@ -290,6 +296,43 @@ def upload_students():
     conn.commit()
     conn.close()
     return jsonify({"message": f"{inserted} students uploaded.", "errors": errors})
+
+# ----------------------------------------------------
+
+@app.route("/admit_card/<roll_no>")
+@login_required
+def admit_card(roll_no):
+    if session.get("roll_no") != roll_no:
+        return jsonify({"error": "You can only download your own admit card."}), 403
+
+    conn    = get_db_connection()
+    student = conn.execute("SELECT * FROM students WHERE roll_no = ?", (roll_no,)).fetchone()
+    exam    = conn.execute("SELECT * FROM exams ORDER BY id DESC LIMIT 1").fetchone()
+    conn.close()
+
+    if not student:
+        return jsonify({"error": "Student not found."}), 404
+    if student["seat_row"] == -1:
+        return jsonify({"error": "Seats not assigned yet."}), 400
+
+    # Sending ALL the new data to the frontend PDF generator
+    return jsonify({
+        "roll_no"      : student["roll_no"],
+        "name"         : student["name"],
+        "father_name"  : student["father_name"],
+        "enrollment_no": student["enrollment_no"],
+        "program"      : student["program"],
+        "semester"     : student["semester"],
+        "branch"       : student["branch"],
+        "section"      : student["section"],
+        "room_no"      : student["room_no"],
+        "row"          : student["seat_row"],
+        "col"          : student["seat_col"],
+        "seat_display" : f"Row {student['seat_row']+1}, Seat {student['seat_col']+1}",
+        "exam_name"    : exam["exam_name"] if exam else "Examination",
+        "subject"      : exam["subject"]   if exam else "",
+        "exam_date"    : exam["exam_date"] if exam else ""
+    })
 
 
 @app.route("/upload_rooms", methods=["POST"])
@@ -544,42 +587,6 @@ def get_stats():
                              "cols": r["cols"], "occupied": r["occupied"],
                              "capacity": r["rows"] * r["cols"]} for r in rooms]
     })
-
-
-# ============================================================
-#  ROUTE: Admit Card data  GET /admit_card/<roll_no>
-#  Returns all data needed to generate PDF admit card
-# ============================================================
-@app.route("/admit_card/<roll_no>")
-@login_required
-def admit_card(roll_no):
-    # Students can only get their own admit card
-    if session.get("roll_no") != roll_no:
-        return jsonify({"error": "You can only download your own admit card."}), 403
-
-    conn    = get_db_connection()
-    student = conn.execute("SELECT * FROM students WHERE roll_no = ?", (roll_no,)).fetchone()
-    exam    = conn.execute("SELECT * FROM exams ORDER BY id DESC LIMIT 1").fetchone()
-    conn.close()
-
-    if not student:
-        return jsonify({"error": "Student not found."}), 404
-    if student["seat_row"] == -1:
-        return jsonify({"error": "Seats not assigned yet."}), 400
-
-    return jsonify({
-        "roll_no"  : student["roll_no"],
-        "name"     : student["name"],
-        "branch"   : student["branch"],
-        "room_no"  : student["room_no"],
-        "row"      : student["seat_row"],
-        "col"      : student["seat_col"],
-        "seat_display": f"Row {student['seat_row']+1}, Seat {student['seat_col']+1}",
-        "exam_name": exam["exam_name"] if exam else "Examination",
-        "subject"  : exam["subject"]   if exam else "",
-        "exam_date": exam["exam_date"] if exam else ""
-    })
-
 
 # ============================================================
 #  ROUTE: Seating Chart  GET /seating_chart  (admin only)
